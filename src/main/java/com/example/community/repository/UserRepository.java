@@ -19,6 +19,8 @@ public interface UserRepository{
 
     String selectPassword(String email);
 
+    String selectEmail(String email);
+
     //insert query
     int signup(User user);
 
@@ -28,4 +30,5 @@ public interface UserRepository{
 
 
     //delete query
+    void delete(String email);
 }

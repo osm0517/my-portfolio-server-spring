@@ -6,9 +6,7 @@ import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,21 +25,12 @@ public class UserController {
     public String  signup(@RequestBody User user){
         /*현재 에러 처리는 service에서 try catch 문으로 처리
         * 기본 처리만 한 것이기에 세세하게 만들 때에는 다시 해야함*/
-        return userService.create(user);
+        return userService.signup(user);
     }
 
-    @RequestMapping("/test")
-    public String dd(@RequestBody User user) throws Exception {
-//        try{
-//            repository.selectPick(email);
-//        }catch (NullPointerException e) {
-//            return "nullPointerException";
-//        }
-        String result = bCryptService.encodeBcrypt(user.getPassword(), 10);
-
-        System.out.println(user.getPassword().getClass().getName());
-        System.out.println(result);
-        return result;
+    @RequestMapping("/test/{type}")
+    public void dd(@PathVariable String type) throws Exception {
+        System.out.println(type);
     }
 
     @RequestMapping("/login")
@@ -52,7 +41,7 @@ public class UserController {
         String email = user.getEmail();
         String password = user.getPassword();
         try{
-            return userService.search(email, password);
+            return userService.login(email, password);
         }catch (Exception e){
             String error = e.getClass().toString();
             System.out.println(error);
@@ -60,32 +49,51 @@ public class UserController {
         }
     }
 
-    @RequestMapping("/search")
-    public String search(@RequestBody User user){
+    @RequestMapping("/search/{type}")
+    public String search(@PathVariable String type,@RequestBody User user){
 
-
-        return "dddd";
+        String email = user.getEmail();
+        try {
+            return userService.search(type, email);
+        }catch (Exception e){
+            String error = e.getClass().toString();
+            System.out.println(error);
+            return error;
+        }
     }
 
     @RequestMapping("/change")
     public String change(@RequestBody User user){
-
-
-        return "dddd";
+        try{
+            return userService.change(user);
+        }catch (Exception e){
+            String error = e.getClass().toString();
+            System.out.println(error);
+            return error;
+        }
     }
 
     @RequestMapping("/delete")
     public String delete(@RequestBody User user){
-
-
-        return "dddd";
+        try {
+            return userService.delete(user);
+        }catch (Exception e){
+            String error = e.getClass().toString();
+            System.out.println(error);
+            return error;
+        }
     }
 
     @RequestMapping("/overlap")
     public String overlap(@RequestBody User user){
-
-
-        return "dddd";
+        String email = user.getEmail();
+        try {
+            return userService.search("email", email);
+        }catch (Exception e){
+            String error = e.getClass().toString();
+            System.out.println(error);
+            return error;
+        }
     }
 
     @RequestMapping("/auth")
