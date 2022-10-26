@@ -24,9 +24,21 @@
         SELECT password FROM user_tb WHERE email = #{email}
     </select>
 
+    <select id="countAuth" resultType="Integer" parameterType="String">
+        SELECT count(*) FROM user_auth_tb WHERE email = #{email}
+    </select>
+
+    <select id="selectAuth" resultType="String" parameterType="String">
+        SELECT randomstring FROM user_auth_tb WHERE email = #{email}
+    </select>
+
     <!--  insert query  -->
     <insert id="signup" parameterType="User">
         INSERT INTO user_tb(email, password, name, nickname) VALUES (#{email}, #{password}, #{name}, #{nickname})
+    </insert>
+
+    <insert id="createAuth" parameterType="Auth">
+        INSERT INTO user_auth_tb(email, randomstring) VALUES (#{email}, #{randomstring})
     </insert>
 
     <!--  update query  -->
