@@ -1,5 +1,6 @@
 package com.example.community.repository;
 
+import com.example.community.dto.Auth;
 import com.example.community.dto.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,8 +22,14 @@ public interface UserRepository{
 
     String selectEmail(String email);
 
+    int countAuth(String email);
+
+    List<String> selectAuth(String email);
+
     //insert query
     int signup(User user);
+
+    int createAuth(Auth data);
 
 
     //update query
