@@ -1,18 +1,14 @@
 package com.example.community.controller;
 
-import com.example.community.dto.Auth;
 import com.example.community.dto.User;
 import com.example.community.utils.BCryptService;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.service.UserService;
-import com.example.community.utils.MailService;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -21,9 +17,6 @@ public class UserController {
     private BCryptService bCryptService;
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private MailService mailService;
 
     @Autowired
     private UserRepository repository;
@@ -35,10 +28,9 @@ public class UserController {
         return userService.signup(user);
     }
 
-    @RequestMapping("/test")
-    public List<String> dd(@RequestBody Auth auth) {
-        System.out.println(auth.getEmail());
-        return repository.selectAuth(auth.getEmail());
+    @RequestMapping("/test/{type}")
+    public void dd(@PathVariable String type) throws Exception {
+        System.out.println(type);
     }
 
     @RequestMapping("/login")
@@ -94,23 +86,21 @@ public class UserController {
 
     @RequestMapping("/overlap")
     public String overlap(@RequestBody User user){
+        String email = user.getEmail();
         try {
-            return userService.overlap(user.getEmail());
-        }catch (Exception e){
-            System.out.println(e);
-            return e.toString();
-        }
-    }
-
-    @RequestMapping("/auth")
-    public String auth(@RequestBody Auth auth){
-
-        try {
-            return userService.auth(auth);
+            return userService.search("email", email);
         }catch (Exception e){
             String error = e.getClass().toString();
             System.out.println(error);
             return error;
         }
     }
+
+    @RequestMapping("/auth")
+    public String auth(@RequestBody User user){
+
+
+        return "dddd";
+    }
+
 }
