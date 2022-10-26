@@ -38,7 +38,7 @@
     </insert>
 
     <insert id="createAuth" parameterType="Auth">
-        INSERT INTO user_auth_tb(email, randomstring) VALUES (#{email}, #{randomstring})
+        INSERT INTO user_auth_tb(email,  randomstring) VALUES (#{email}, #{randomstring})
     </insert>
 
     <!--  update query  -->

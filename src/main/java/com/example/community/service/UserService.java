@@ -152,6 +152,7 @@ public class UserService {
             if(matchCode) return "인증이 성공적으로 완료되었습니다.";
             return "인증번호가 일치하지 않습니다.";
         }
+
         else return "인증메일을 먼저 수령해주세요.";
     }
 }

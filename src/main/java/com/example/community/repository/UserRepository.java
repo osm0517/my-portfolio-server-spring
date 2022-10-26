@@ -32,6 +32,7 @@ public interface UserRepository{
     int createAuth(Auth data);
 
 
+
     //update query
     void change(User user);
 

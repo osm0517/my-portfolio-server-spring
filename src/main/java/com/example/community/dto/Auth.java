@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Auth {
 
+
     private String email;
 
     private String randomstring;

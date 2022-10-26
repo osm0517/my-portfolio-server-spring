@@ -20,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.servlet.Filter;
 
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig{
