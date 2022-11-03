@@ -5,20 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Board {
+public class BoardText {
 
-    private String title;
+    private String text;
 
-    private Integer userId;
-
-    private Integer categoryId;
-
-    private Integer stackId;
-
-    private String boardText;
+    private int UserId;
 }

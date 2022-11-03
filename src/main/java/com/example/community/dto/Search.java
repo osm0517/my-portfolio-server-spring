@@ -5,20 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Board {
+public class Search {
 
-    private String title;
+    private String searchType;
 
-    private Integer userId;
+    private String searchKeyword;
 
-    private Integer categoryId;
 
-    private Integer stackId;
-
-    private String boardText;
 }
