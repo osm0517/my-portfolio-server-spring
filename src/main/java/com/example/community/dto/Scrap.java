@@ -1,15 +1,19 @@
 package com.example.community.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Scrap {
 
-    private Integer id;
 
-    private Integer boardId;
+    private Long boardId;
 
-    private Integer UserId;
+    //스크랩을 해가는 사람의 id
+    private Long UserId;
 }
