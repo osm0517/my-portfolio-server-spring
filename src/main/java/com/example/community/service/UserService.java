@@ -1,12 +1,14 @@
 package com.example.community.service;
 
 import com.example.community.dto.Auth;
+import com.example.community.dto.Response;
 import com.example.community.dto.User;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.utils.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -29,8 +31,10 @@ public class UserService {
 
     /*먼저 기본적인 api의 틀을 잡기 위해서
     출력을 성공했다 실패했다는 문자열을 보냄*/
-    public String signup(User user) {
+    public Response signup(User user) {
         String inputPassword = user.getPassword();
+        Response result = new Response();
+
         try{
             String hashPassword = bCryptService.encodeBcrypt(inputPassword, strength);
 
@@ -39,120 +43,225 @@ public class UserService {
 
             if(signupResult == 1){
                 System.out.println(signupResult);
-                return "정상적으로 db에 정보가 올라감";
+                result.setMessage("정상적으로 db에 정보가 올라감");
             }else{
                 System.out.println(signupResult);
-                return "db에 정상적으로 정보가 올라가지 못함";
+                result.setMessage("db에 정상적으로 정보가 올라가지 못함");
             }
         }catch (Exception e){
-            System.out.println("createError => " + e.getClass().toString());
-            return "user_tb에 데이터를 저장하는 중에 에러 발생";
+            System.out.println("==========");
+            System.out.println("UserService Signup method Catch Exception");
+            System.out.println("Signup Error => " + e);
+            System.out.println("==========");
+
+            throw new Error("SignupError");
         }
+        return result;
     }
 
-    public String login(String email, String password) throws Exception{
-        String searchResultPassword = repository.selectPassword(email);
+    public Response login(String email, String password)
+            throws Exception{
+        Response response = new Response();
 
-        boolean passwordMatch = bCryptService.matchesBcrypt(password, searchResultPassword, strength);
+        if(Objects.equals(email, null) || Objects.equals(password, null)){
+            response.setMessage("Bad Request Data");
+            response.setStatus(HttpStatus.BAD_REQUEST);
+        }else {
 
-        if(passwordMatch) return "db 정보와 일치함";
-        else return "db에 해당하는 정보가 없음";
-    }
+            String searchResultPassword = repository.selectPassword(email);
 
-    public String search(String type, String email) throws Exception{
-        switch (type) {
-            case "password" :
-                String result =  repository.selectPassword(email);
-                if(Objects.equals(result, null)){
-                    System.out.println(email + "에 해당하는 user 정보는 존재하지 않음");
-                    return "해당하는 이메일이 존재하지 않음";
-                }else{
-                    System.out.println(email + "에 해당하는 비밀번호 -> " + result);
-                    return "비밀번호 확인 후 교체하는 로직을 추가해보자";
-                }
+            boolean passwordMatch = bCryptService.matchesBcrypt(password, searchResultPassword, strength);
 
-            case "email" :
-                return repository.selectEmail(email);
-
-            default:
-                return "잘못된 type이 들어옴";
+            if (passwordMatch) {
+                response.setMessage("OK");
+                response.setStatus(HttpStatus.OK);
+            } else {
+                response.setMessage("Wrong UserInformation");
+                response.setStatus(HttpStatus.UNAUTHORIZED);
+            }
         }
+        return response;
     }
 
-    public String change(User user) throws Exception{
+//    public Response search(String type, String email)
+//            throws Exception{
+//        Response response = new Response();
+//
+//        if(Objects.equals(email, null)){
+//            response.setMessage("Bad Request Data");
+//            response.setStatus(HttpStatus.BAD_REQUEST);
+//        }else {
+//            switch (type) {
+//                case "password":
+//                    String result = repository.selectPassword(email);
+//                    if (Objects.equals(result, null)) {
+//                        response.setStatus(HttpStatus.OK);
+//                        response.setMessage("Password Not Found");
+//                    } else {
+//                        response.setStatus(HttpStatus.OK);
+//                        response.setMessage("OK");
+//                        response.setData(result);
+//                    }
+//
+//                case "email":
+//                    return repository.selectEmail(email);
+//
+//                default:
+//                    return "잘못된 type이 들어옴";
+//            }
+//        }
+//    }
+
+    public Response change(User user)
+            throws Exception{
         String password = user.getPassword();
+        String name = user.getName();
+        String nickname = user.getNickname();
+
+        Response response = new Response();
+
+        if(Objects.equals(password,null) && Objects.equals(name,null) && Objects.equals(nickname,null)){
+            response.setStatus(HttpStatus.BAD_REQUEST);
+            response.setMessage("Input Data Not Found");
+        }
 
         if(!Objects.equals(password, null)){
             password = bCryptService.encodeBcrypt(password, strength);
             user.setPassword(password);
-            System.out.println("password encode => "+ password);
         }
         repository.change(user);
-        return "정상적으로 회원 정보가 수정됨";
+
+        response.setStatus(HttpStatus.OK);
+        response.setMessage("OK");
+
+        return response;
     }
 
-    public String delete(User user) throws Exception{
-        String inputPassword = user.getPassword();
-        String inputEmail = user.getEmail();
-        String dbPassword = repository.selectPassword(inputEmail);
+    public Response delete(String email)
+            throws Exception{
+        Response response = new Response();
 
-        if(Objects.equals(dbPassword, null)) return "해당 이메일은 존재하지 않는 이메일입니다.";
+        //입력된 이메일이 존재하지 않을 때
+        if(Objects.equals(email, null)){
+            response.setMessage("Email Data Not Input");
+            response.setStatus(HttpStatus.BAD_REQUEST);
+        }else{
+            String selectResult;
+            try{
+                selectResult = repository.selectPassword(email);
+            }catch (Exception e){
+                System.out.println("==========");
+                System.out.println("UserService Select Method Catch Exception");
+                System.out.println("Select Error => " + e);
+                System.out.println("==========");
 
-        //비밀번호가 맞는지 확인함
-        boolean matchResult = bCryptService.matchesBcrypt(inputPassword, dbPassword, strength);
+                throw new Error("UserInformation Select Error");
+            }
+            //해당하는 이메일이 없을 때
+            if(Objects.equals(selectResult, null)){
+                response.setMessage("Email Data Not Exist");
+                response.setStatus(HttpStatus.CONFLICT);
+            }else{
+                repository.delete(email);
 
-        if(matchResult) {
-            repository.delete(inputEmail);
-            return "db에서 데이터를 정상적으로 삭제함";
-        }else return "비밀번호가 일치하지 않음";
+                //성공적으로 지우면 redirect로 홈 화면으로 나갈 수 있도록 함
+                response.setStatus(HttpStatus.OK);
+            }
+        }
+        return response;
     }
 
-    public String overlap(String toMail)
+    //중복확인
+    public Response overlap(String type, User user)
         throws Exception{
 
-        String searchEmail = repository.selectEmail(toMail);
-        int countAuth = repository.countAuth(toMail);
+        Response response = new Response();
 
-        String code = mailService.createCode();
-
-        //하루에 가능한 조건을 3개로 제한함
-        if(countAuth <= 3){
-            if(Objects.equals(searchEmail, null)) {
-                mailService.sendMail(code, toMail, "tjdals990517@naver.com");
-                //메일이 전송되면 db에 저장하는 것을 바라고 프로그램 순서를 정함
-                Auth authData = new Auth();
-                authData.setEmail(toMail);
-                authData.setRandomstring(code);
-
-                int authResult = repository.createAuth(authData);
-
-                if(authResult == 1) return "메일이 존재하지 않아 정상적으로 전송함";
-                else return "auth code를 db에 저장하는 중 error가 발생하여 저장되지 않음";
-            }
-
-            else return "중복된 이메일이 존재함";
-        }else{
-            return "하루에 가능한 이메일 인증 횟수를 초과함";
+        if(!Objects.equals(type, "email") || !Objects.equals(type, "nickname")){
+            response.setMessage("Wrong Type Value");
+            response.setStatus(HttpStatus.BAD_REQUEST);
         }
+        else {
+            //중복확인 값
+            String selectValue = repository.infoOverlap(user);
+
+            //중복확인 통과
+            if (Objects.equals(selectValue, null)) {
+                response.setMessage("OK");
+                response.setStatus(HttpStatus.OK);
+            }
+            //중복확인에서 충돌
+            //이메일이 존재한다 -> 이미 사용자가 가입을 했었다.
+            else {
+                response.setMessage("Already Exist Information");
+                response.setStatus(HttpStatus.CONFLICT);
+                response.setData(selectValue);
+            }
+        }
+            return response;
     }
 
-    public String auth(Auth auth)
+    //인증 메일 전송하는 메소드
+    //기존에 인증확인을 위한 randomString이 존재한다면 기존 것을 삭제
+    public Response mail(String email)
+        throws Exception{
+        Response response = new Response();
+
+        String randomString = mailService.createCode();
+
+        mailService.sendMail(randomString, email, "tjdals990517@naver.com");
+        //메일 보내는데 성공하면 db에 인증 정보를 저장
+        repository.createAuth(new Auth(email, randomString));
+
+        response.setStatus(HttpStatus.OK);
+        response.setMessage("OK");
+
+        return response;
+    }
+
+    public Response auth(Auth auth)
         throws Exception{
 
         String randomString = auth.getRandomstring();
         String email = auth.getEmail();
 
+        Response response = new Response();
+
         int countAuth = repository.countAuth(email);
 
+        //보낸 인증메일이 존재
         if(countAuth > 0){
-            List<String> selectAuth = repository.selectAuth(email);
+            String selectAuth = repository.selectAuth(email);
 
             boolean matchCode = selectAuth.contains(randomString);
 
-            if(matchCode) return "인증이 성공적으로 완료되었습니다.";
-            return "인증번호가 일치하지 않습니다.";
+            //입력값과 db에 저장된 값이 같음
+            if(matchCode){
+
+                try{
+                    repository.deleteAuth(email);
+                }catch (Exception e){
+                    System.out.println("==========");
+                    System.out.println("DeleteAuth Method Catch Exception");
+                    System.out.println("DeleteAuth Error => " + e);
+                    System.out.println("==========");
+
+                    throw new Error("DeleteAuth Error");
+                }
+
+                response.setMessage("OK");
+                response.setStatus(HttpStatus.OK);
+            }else {
+                response.setMessage("Input Random String Wrong");
+                response.setStatus(HttpStatus.CONFLICT);
+            }
+        }
+        //보낸 인증메일이 존재하지 않음
+        else {
+            response.setMessage("Data Not Exist To DB");
+            response.setStatus(HttpStatus.BAD_REQUEST);
         }
 
-        else return "인증메일을 먼저 수령해주세요.";
+        return response;
     }
 }

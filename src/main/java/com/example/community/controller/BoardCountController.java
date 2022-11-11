@@ -4,14 +4,16 @@ package com.example.community.controller;
 import com.example.community.dto.Response;
 import com.example.community.dto.Test;
 import com.example.community.service.CountService;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.*;
 
 @RestController()
 @RequestMapping("/count")
@@ -21,7 +23,7 @@ public class BoardCountController {
     CountService countService;
 
     @RequestMapping(value = "/test", method = RequestMethod.POST)
-    public void test(@RequestBody Object test){
+    public void test(@RequestBody Test test){
         System.out.println(test);
     }
     //게시물의 조회수를 증가시키기 위해서 사용함

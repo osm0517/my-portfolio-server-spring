@@ -2,9 +2,7 @@ package com.example.community.repository;
 
 import com.example.community.dto.Auth;
 import com.example.community.dto.User;
-import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,15 +14,13 @@ public interface UserRepository{
     //select query
     List<User> selectAll();
 
-    User selectPick(String email);
-
     String selectPassword(String email);
-
-    String selectEmail(String email);
 
     int countAuth(String email);
 
-    List<String> selectAuth(String email);
+    String selectAuth(String email);
+
+    String infoOverlap(User user);
 
     //insert query
     int signup(User user);
@@ -39,4 +35,6 @@ public interface UserRepository{
 
     //delete query
     void delete(String email);
+
+    void deleteAuth(String email);
 }
