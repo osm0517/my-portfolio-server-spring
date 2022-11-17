@@ -14,7 +14,7 @@ public interface UserRepository{
     //select query
     List<User> selectAll();
 
-    String selectPassword(String email);
+    String selectPassword(String userId);
 
     int countAuth(String email);
 

@@ -15,6 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class User {
 
+    private String userId;
+
     private String email;
 
     private String password;
@@ -22,5 +24,7 @@ public class User {
     private String name;
 
     private String nickname;
+
+    private String auth;
 
 }

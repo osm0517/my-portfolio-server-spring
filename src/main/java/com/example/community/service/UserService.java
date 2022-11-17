@@ -6,12 +6,14 @@ import com.example.community.dto.User;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.utils.MailService;
+import com.example.community.utils.jwt.JwtConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,6 +30,10 @@ public class UserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private JwtConfig jwtConfig;
+
 
     /*먼저 기본적인 api의 틀을 잡기 위해서
     출력을 성공했다 실패했다는 문자열을 보냄*/
@@ -54,21 +60,22 @@ public class UserService {
             System.out.println("Signup Error => " + e);
             System.out.println("==========");
 
+
             throw new Error("SignupError");
         }
         return result;
     }
 
-    public Response login(String email, String password)
+    public Response login(String userId, String password, String auth)
             throws Exception{
         Response response = new Response();
 
-        if(Objects.equals(email, null) || Objects.equals(password, null)){
+        if(Objects.equals(userId, null) || Objects.equals(password, null) || Objects.equals(auth, null)){
             response.setMessage("Bad Request Data");
             response.setStatus(HttpStatus.BAD_REQUEST);
         }else {
 
-            String searchResultPassword = repository.selectPassword(email);
+            String searchResultPassword = repository.selectPassword(userId);
 
             boolean passwordMatch = bCryptService.matchesBcrypt(password, searchResultPassword, strength);
 
@@ -177,7 +184,7 @@ public class UserService {
 
         Response response = new Response();
 
-        if(!Objects.equals(type, "email") || !Objects.equals(type, "nickname")){
+        if(!Objects.equals(type, "email") && !Objects.equals(type, "nickname") && !Objects.equals(type, "userId")){
             response.setMessage("Wrong Type Value");
             response.setStatus(HttpStatus.BAD_REQUEST);
         }
@@ -210,9 +217,24 @@ public class UserService {
         String randomString = mailService.createCode();
 
         mailService.sendMail(randomString, email, "tjdals990517@naver.com");
+
+        try{
+            //이미 보낸 메일이 있으면 randomString을 삭제하고 저장
+            int selectResult = repository.countAuth(email);
+
+            if(selectResult != 0){ repository.deleteAuth(email); }
+        }catch (Exception e){
+            System.out.println("==========");
+            System.out.println("UserService Mail Method Catch Exception");
+            System.out.println("Mail Error => " + e);
+            System.out.println("==========");
+
+            response.setMessage("Send Auth Mail Error");
+            response.setData(e);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         //메일 보내는데 성공하면 db에 인증 정보를 저장
         repository.createAuth(new Auth(email, randomString));
-
         response.setStatus(HttpStatus.OK);
         response.setMessage("OK");
 

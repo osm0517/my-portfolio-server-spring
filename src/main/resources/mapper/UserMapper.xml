@@ -14,7 +14,7 @@
     </select>
 
     <select id="selectPassword" resultType="String" parameterType="String">
-        SELECT password FROM user_tb WHERE email = #{email}
+        SELECT password FROM user_tb WHERE userId = #{userId}
     </select>
 
     <select id="countAuth" resultType="Integer" parameterType="String">
@@ -30,12 +30,13 @@
         <trim suffixOverrides=",">
             <if test="email != null"> email = #{email} </if>
             <if test="nickname != null"> nickname = #{nickname} </if>
+            <if test="userId != null"> userId = #{userId} </if>
         </trim>
     </select>
 
     <!--  insert query  -->
     <insert id="signup" parameterType="User">
-        INSERT INTO user_tb(email, password, name, nickname) VALUES (#{email}, #{password}, #{name}, #{nickname})
+        INSERT INTO user_tb(email, password, name, nickname, userId) VALUES (#{email}, #{password}, #{name}, #{nickname}, #{userId})
     </insert>
 
     <insert id="createAuth" parameterType="Auth">

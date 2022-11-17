@@ -85,6 +85,8 @@ public class BoardService {
         //1페이지에 얼마나 보여줄지 결정
         int range = 4;
 
+        Response response = new Response();
+
         int gap = page * range;
         PagingEntity entity = new PagingEntity(gap, range, sortType);
 
@@ -92,7 +94,10 @@ public class BoardService {
 
         if(Objects.equals(result, null)) throw new Error("Paging End");
 
-        return new Response("정상적으로 불러옴", result);
+        response.setMessage("정상적으로 불러옴");
+        response.setData(result);
+
+        return response;
 
     }
 

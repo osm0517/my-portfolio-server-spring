@@ -3,23 +3,30 @@ package com.example.community.controller;
 import com.example.community.dto.Auth;
 import com.example.community.dto.Response;
 import com.example.community.dto.User;
+import com.example.community.service.CookieService;
 import com.example.community.utils.BCryptService;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.service.UserService;
 import com.example.community.utils.MailService;
+import com.example.community.utils.jwt.JwtConfig;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -36,6 +43,15 @@ public class UserController {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private CookieService cookieService;
+
+    @Autowired
+    private JwtConfig jwtConfig;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
+
     //일단은 완벽하게 짜놓음
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public ResponseEntity<?> signup(@RequestBody User user){
@@ -48,34 +64,43 @@ public class UserController {
         return new ResponseEntity<>(response, status);
     }
 
-    @RequestMapping("/test")
-    public String dd(@RequestBody int a, HttpServletResponse response) throws IOException {
 
-        Exception test = null;
-        System.out.println(test.toString());
-        if(a == 1) response.sendError(401, "error");
-        else if(a == 2) response.sendError(402, "error");
-        else if(a == 3) response.sendError(403, "error");
-        else if(a == 4) return "되자 제발..!";
-        return "뭐임 ㅠ";
+
+    @RequestMapping("/test")
+    public void dd(@CookieValue String test) throws IOException {
+        System.out.println(test);
+
     }
 
 
     //지금 생각으로 완벽하게 짬
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ResponseEntity<?> login(@RequestBody User user){
+    public ResponseEntity<?> login(@RequestBody User user, HttpServletResponse servletResponse){
         /* 기본 단계지만 학습을 위해서 service에서 발생한 에러를
         * 현재 위치(controller)로 전송함
         * 여기서 에러를 처리*/
         Response response = new Response();
         HttpStatus status;
 
-        String email = user.getEmail();
+        String userId = user.getUserId();
         String password = user.getPassword();
+        String auth = user.getAuth();
         try{
-            response = userService.login(email, password);
-
+            response = userService.login(userId, password, auth);
             status = response.getStatus();
+
+            if(status == HttpStatus.OK){
+                String cookieValue = jwtConfig.createToken(userId, Arrays.asList("user"));
+
+
+//                Cookie cookie = cookieService.createCookie("X-AUTH-TOKEN", cookieValue);
+                Cookie cookie = cookieService.createCookie("test", "test");
+                cookie.setDomain("localhost");
+
+                cookie.setMaxAge((int) expiration);
+
+                servletResponse.addCookie(cookie);
+            }
         }catch (Exception e){
             System.out.println("==========");
             System.out.println("UserController Login Method Catch Exception");
@@ -162,24 +187,25 @@ public class UserController {
     }
 
     //지금 생각으로 완벽
-    @RequestMapping(value = "/overlap/{type}", method = RequestMethod.GET)
+    @RequestMapping(value = "/overlap/{type}", method = RequestMethod.POST)
     public ResponseEntity<?> overlap(@PathVariable String type, @RequestBody User user){
 
         Response response = new Response();
         HttpHeaders headers = new HttpHeaders();
         HttpStatus status;
+        System.out.println(user);
 
         try {
             response = userService.overlap(type, user);
             status = response.getStatus();
 
-            //type = email & 반환값이 존재한다 -> 이미 사용자가 가입을 했다
-            if(Objects.equals(type, "email") && Objects.equals(response.getStatus(), HttpStatus.CONFLICT)){
-                headers.setLocation(URI.create("/user/search"));
-                status = HttpStatus.MOVED_PERMANENTLY;
-
-                return new ResponseEntity<>(headers,status);
-            }
+//            //type = email & 반환값이 존재한다 -> 이미 사용자가 가입을 했다
+//            if(Objects.equals(type, "email") && Objects.equals(response.getStatus(), HttpStatus.CONFLICT)){
+//                headers.setLocation(URI.create("http://localhost:3000/community-front/user/search/id"));
+//                status = HttpStatus.MOVED_PERMANENTLY;
+//
+//                return new ResponseEntity<>(headers,status);
+//            }
         }catch (Exception e){
             System.out.println("==========");
             System.out.println("UserController Overlap Method Catch Exception");
@@ -197,13 +223,13 @@ public class UserController {
     //이메일로 인증메일을 보냄
     //지금 생각으로는 완벽
     @RequestMapping(value = "/overlap/mail", method = RequestMethod.POST)
-    public ResponseEntity<?> overlapMailPost(@RequestBody String email){
+    public ResponseEntity<?> overlapMailPost(@RequestBody Auth auth){
 
         Response response = new Response();
         HttpStatus status;
-
+        System.out.println(auth.getEmail());
         try {
-            response = userService.mail(email);
+            response = userService.mail(auth.getEmail());
             status = response.getStatus();
         }catch (Exception e){
 
@@ -222,13 +248,15 @@ public class UserController {
 
     //지금으로는 완벽
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
-    public ResponseEntity<?> auth(@RequestBody Auth auth){
+    public ResponseEntity<?> auth(@RequestParam(name = "email") String email, @RequestParam(name = "randomString") String randomString){
 
         Response response = new Response();
         HttpStatus status;
+        System.out.println(email);
+        System.out.println(randomString);
 
         try {
-            response = userService.auth(auth);
+            response = userService.auth(new Auth(email, randomString));
             status = response.getStatus();
         }catch (Exception e){
             System.out.println("==========");
