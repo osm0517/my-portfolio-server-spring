@@ -21,6 +21,10 @@
         SELECT count(*) FROM user_auth_tb WHERE email = #{email}
     </select>
 
+    <select id="findAuthByUserId" resultType="String" parameterType="String">
+        SELECT auth FROM user_tb WHERE userId = #{userId}
+    </select>
+
     <select id="selectAuth" resultType="String" parameterType="String">
         SELECT randomstring FROM user_auth_tb WHERE email = #{email}
     </select>

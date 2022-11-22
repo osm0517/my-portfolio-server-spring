@@ -11,26 +11,31 @@ import com.example.community.service.UserService;
 import com.example.community.utils.MailService;
 import com.example.community.utils.jwt.JwtConfig;
 import com.fasterxml.jackson.databind.util.JSONPObject;
-import org.apache.ibatis.jdbc.Null;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 @RequestMapping("/user")
+@Api(tags = {"user 관련 API"})
+@RequiredArgsConstructor
 public class UserController {
     @Autowired
     private BCryptService bCryptService;
@@ -49,11 +54,20 @@ public class UserController {
     @Autowired
     private JwtConfig jwtConfig;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+
+    @Value("${jwt.access-secretKey}")
+    private String accessKey;
+    @Value("${jwt.access-expiration}")
+    private long accessExpiration;
+
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
 
     //일단은 완벽하게 짜놓음
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
+    @ApiOperation(value = "회원가입", notes = "2022.11.22 기준 권한을 어떻게 설정하여서" +
+            "DB에 저장해야할지 로직을 구성하지 못함 -> 해당 내용을 추가해야할 것 같음")
     public ResponseEntity<?> signup(@RequestBody User user){
 
         /*현재 에러 처리는 service에서 try catch 문으로 처리
@@ -67,14 +81,21 @@ public class UserController {
 
 
     @RequestMapping("/test")
-    public void dd(@CookieValue String test) throws IOException {
-        System.out.println(test);
-
+    public Object  dd(HttpServletRequest request) {
+//        accessKey = Base64.getEncoder().encodeToString(accessKey.getBytes());
+        String token = jwtConfig.resolveToken(request);
+        System.out.println("token = " + token);
+        System.out.println("accessKey = " + accessKey);
+        Claims claims = Jwts.parser().setSigningKey(accessKey).parseClaimsJws(token).getBody();
+        return claims.get("roles");
     }
 
 
     //지금 생각으로 완벽하게 짬
     @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @ApiOperation(value = "로그인", notes = "2022.11.22 기준 로그인 시에" +
+            "refresh token, access token, login check cookie를 제공" +
+            "다시 한 번 손을 봐야할 듯 싶음")
     public ResponseEntity<?> login(@RequestBody User user, HttpServletResponse servletResponse){
         /* 기본 단계지만 학습을 위해서 service에서 발생한 에러를
         * 현재 위치(controller)로 전송함
@@ -90,16 +111,18 @@ public class UserController {
             status = response.getStatus();
 
             if(status == HttpStatus.OK){
-                String cookieValue = jwtConfig.createToken(userId, Arrays.asList("user"));
+                String accessToken = jwtConfig.createAccessToken(userId, Arrays.asList("ROLE_USER"));
+                String refreshToken = jwtConfig.createRefreshToken(userId, Arrays.asList("ROLE_USER"));
 
 
-//                Cookie cookie = cookieService.createCookie("X-AUTH-TOKEN", cookieValue);
-                Cookie cookie = cookieService.createCookie("test", "test");
-                cookie.setDomain("localhost");
+                Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration);
+                Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration);
+                //httponly 설정이 안 된 cookie 로그인이 됐는지 클라이언트에서 확인하기 위함
+                Cookie loginCheckCookie = cookieService.loginCheckCookie(accessExpiration);
 
-                cookie.setMaxAge((int) expiration);
-
-                servletResponse.addCookie(cookie);
+                servletResponse.addCookie(accessCookie);
+                servletResponse.addCookie(refreshCookie);
+                servletResponse.addCookie(loginCheckCookie);
             }
         }catch (Exception e){
             System.out.println("==========");
@@ -133,6 +156,7 @@ public class UserController {
 
     //일단은 완벽
     @RequestMapping(value = "/change", method = RequestMethod.POST)
+    @ApiOperation(value = "정보 수정", notes = "회원정보를 수정하는 로직")
     public ResponseEntity<?> change(@RequestBody User user){
 
         Response response = new Response();
@@ -157,6 +181,7 @@ public class UserController {
 
     //지금 상태로는 완벽
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    @ApiOperation(value = "정보 수정")
     public ResponseEntity<?> delete(@RequestBody String email){
         Response response = new Response();
         HttpStatus status;
@@ -188,6 +213,8 @@ public class UserController {
 
     //지금 생각으로 완벽
     @RequestMapping(value = "/overlap/{type}", method = RequestMethod.POST)
+    @ApiOperation(value = "중복확인", notes = "회원가입시에 정보가 중복되었는지" +
+            "확인하기 위해 사용하는 api로 ID, NICKNAME, EMAIL을 확인할 수 있음")
     public ResponseEntity<?> overlap(@PathVariable String type, @RequestBody User user){
 
         Response response = new Response();
@@ -223,6 +250,9 @@ public class UserController {
     //이메일로 인증메일을 보냄
     //지금 생각으로는 완벽
     @RequestMapping(value = "/overlap/mail", method = RequestMethod.POST)
+    @ApiOperation(value = "인증메일 전송", notes = "email을 중복확인을 한 후에" +
+            "해당 메일이 실제로 존재하는지 와 해당 메일이 실제로 사용자가 사용하는 메일인지를" +
+            "확인하기 위해서 메일을 전송함")
     public ResponseEntity<?> overlapMailPost(@RequestBody Auth auth){
 
         Response response = new Response();
@@ -248,6 +278,8 @@ public class UserController {
 
     //지금으로는 완벽
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
+    @ApiOperation(value = "인증번호 인증", notes = "사용자가 메일로 받은 인증번호를" +
+            "인증하기 위해서 사용함")
     public ResponseEntity<?> auth(@RequestParam(name = "email") String email, @RequestParam(name = "randomString") String randomString){
 
         Response response = new Response();

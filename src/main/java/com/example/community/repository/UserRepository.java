@@ -16,6 +16,8 @@ public interface UserRepository{
 
     String selectPassword(String userId);
 
+    String findAuthByUserId(String userId);
+
     int countAuth(String email);
 
     String selectAuth(String email);
