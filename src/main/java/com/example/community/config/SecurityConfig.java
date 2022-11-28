@@ -40,10 +40,10 @@ public class SecurityConfig{
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .antMatchers("/user/login", "user/signup", "/swagger-ui.html").permitAll()
-                    .antMatchers("/user/").hasRole("USER")
+//                    .antMatchers("/user/login", "user/signup", "/swagger-ui.html").permitAll()
+//                    .antMatchers("/user/").hasRole("USER")
 //                    .anyRequest().authenticated()
-//                    .anyRequest().permitAll()
+                    .anyRequest().permitAll()
                     .and()
                 .formLogin()
 //                    .loginPage("/user/login")

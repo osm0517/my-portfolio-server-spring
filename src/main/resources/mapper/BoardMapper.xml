@@ -8,6 +8,10 @@
 <!-- Mapper를 사용하는 Repository의 전체 경로를 적어줘야함. -->
 <mapper namespace="com.example.community.repository.BoardRepository">
     <!--  select query  -->
+    <select id="findTotalByAll" resultType="int">
+        SELECT COUNT(*) FROM board_tb
+    </select>
+
     <select id="readDetail" parameterType="Long" resultType="Board">
         SELECT userId, title, boardText FROM board_tb WHERE id = #{boardId}
     </select>
@@ -22,26 +26,45 @@
         </trim>
     </select>
 
-    <select id="boardPaging" parameterType="PagingEntity" resultType="Board">
-        SELECT board_tb.title, board_tb.userId FROM board_tb
-        <if test="sortType == 'old'"> ORDER BY createdAt DESC </if>
-        <if test="sortType == 'count'"> INNER JOIN board_count_tb ON board_tb.id = board_count_tb.boardId ORDER BY countValue ASC </if>
+    <select id="findPostFromDB" parameterType="PagingEntity" resultType="Board">
+        SELECT board_tb.title, (SELECT name FROM user_tb WHERE id = board_tb.userId) as name FROM board_tb
+        WHERE categoryId = #{ categoryId }
+        <if test="searchQuery != ''">
+            and boardText LIKE concat('%', #{ searchQuery }, '%') and title LIKE concat('%', #{ searchQuery }, '%')
+        </if>
+        <choose>
+            <when test="sortType == 'old'">
+                ORDER BY createdAt DESC
+            </when>
+            <when test="sortType == 'count'">
+                LEFT JOIN board_count_tb ON board_tb.id = board_count_tb.boardId ORDER BY countValue ASC
+            </when>
+        </choose>
 <!--        <if test="sortType == 'scrap'"> ORDER BY createdAt DESC </if>-->
-        LIMIT #{gap}, #{range}
+        LIMIT #{ gap }, #{ listTotal }
     </select>
 
     <!--  insert query  -->
     <insert id="writeBoard" parameterType="Board">
-        INSERT INTO board_tb(userId, categoryId, stackId, title, boardText) VALUES(#{userId}, #{categoryId}, #{stackId}, #{title}, #{boardText});
+        INSERT INTO board_tb(userId, categoryId, title, boardText) VALUES(#{userId}, #{categoryId}, #{title}, #{boardText});
     </insert>
 
     <!--  update query  -->
     <!-- 일단은 제목이랑 내용만 업데이트 가능하게-->
-    <update id="updateBoard" parameterType="BoardUpdateEntity">
+    <update id="updateByBoardId" parameterType="BoardUpdateEntity">
         UPDATE board_tb
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="boardText != null"> boardText = #{boardText}</if>
-            <if test="title != null"> title = #{title}</if>
+        <trim prefix="SET">
+            <choose>
+                <when test="boardText != null and title == null">
+                    boardText = #{ boardText }
+                </when>
+                <when test="boardText == null and title != null">
+                    title = #{ title }
+                </when>
+                <otherwise>
+                    boardText = #{ boardText } , title = #{ title }
+                </otherwise>
+            </choose>
         </trim>
         WHERE id = #{boardId}
     </update>

@@ -14,15 +14,21 @@ import java.util.List;
 @Repository
 public interface BoardRepository {
 
+    //페이징을 할 때에 사용하는 메소드
+    //게시물의 총 개수를 가져옴
+    //현재는 검색을 사용하지 않았을 때만 고려
+    int findTotalByAll();
+
     int writeBoard(Board board);
 
     Board readDetail(Long boardId);
 
     List<String> searchBoard(Search search);
 
-    List<Board> boardPaging(PagingEntity entity);
+    //list를 가져와서 페이징하는 sql
+    List<Board> findPostFromDB(PagingEntity entity);
 
-    int updateBoard(BoardUpdateEntity entity);
+    int updateByBoardId(BoardUpdateEntity entity);
 
-    int delete(Long boardId);
+    int deleteByBoardId(Long boardId);
 }

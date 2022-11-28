@@ -14,6 +14,8 @@ public class BoardUpdateEntity {
 
     private String title;
 
+    private Integer categoryId;
+
     private String boardText;
 
     //vo여서 setter가 없어야함
@@ -26,6 +28,7 @@ public class BoardUpdateEntity {
 
         this.title = board.getTitle();
 
+        this.categoryId = board.getCategoryId();
     }
 
 

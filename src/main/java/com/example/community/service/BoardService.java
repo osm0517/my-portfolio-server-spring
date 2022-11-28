@@ -7,6 +7,7 @@ import com.example.community.repository.BoardRepository;
 import com.example.community.vo.BoardUpdateEntity;
 import com.example.community.vo.PagingEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,27 +19,35 @@ public class BoardService {
     @Autowired
     BoardRepository repository;
 
-    public String write(Board board)
+    public Response write(Board board)
         throws Exception{
+        Response response = new Response();
+
+        //글의 내용이 존재하지 않으면 NullPointerException을 발생
+        if(Objects.equals(board.getBoardText(), null)){ throw new NullPointerException("board text null!!!!"); }
 
         int boardResult = repository.writeBoard(board);
 
-        if(boardResult > 0) return "db에 정상적으로 저장됨";
-        else return "db에 정상적으로 저장안됨";
-
+        if(boardResult != 1) {
+            response.setMessage("board write error");
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }else{
+            response.setMessage("OK");
+            response.setStatus(HttpStatus.OK);
+        }
+        return response;
     }
 
     public Response detail(Long boardId)
             throws Exception{
 
-        Response result = new Response();
+        Response response = new Response();
         Board boardData = repository.readDetail(boardId);
 
-        if(Objects.equals(boardData, null)) throw new Error("boardId not found");
-
-        result.setData(boardData);
-        result.setMessage("데이터가 정상적으로 불러옴");
-        return result;
+        response.setData(boardData);
+        response.setMessage("OK");
+        response.setStatus(HttpStatus.OK);
+        return response;
     }
 
     // 검색을 할 때에 searchType은 총 4가지로 일단은 나눔
@@ -60,58 +69,80 @@ public class BoardService {
         return result;
     }
 
-    public Response update(Long boardId, Board board)
+    public Response updateByBoardId(Long boardId, Board board)
             throws Exception{
 
         Response result = new Response();
         BoardUpdateEntity entity = new BoardUpdateEntity(boardId, board);
 
         //데이터가 없으면 error를 반환
-        if(Objects.equals(entity.getBoardText(), null) && Objects.equals(entity.getTitle(), null)) throw new Error("Data Not Found");
+        if(Objects.equals(entity.getBoardText(), null) && Objects.equals(entity.getTitle(), null) &&
+                Objects.equals(entity.getCategoryId(), null)) throw new Error("Data Not Found");
+
         if(Objects.equals(boardId, null)) throw new Error("BoardId Not Found");
 
-        int updateResult = repository.updateBoard(entity);
+        int updateResult = repository.updateByBoardId(entity);
 
         //업데이트를 할 때에 반환이 1아 아니면 제대로 안된 것
-        //제대로 안되면 error가 발생하는지 확인해봐야함
-        if(updateResult != 1) throw new Error("Update Error");
+        if(updateResult != 1) {
+            throw new Error("Post Not Exist");
+        }
 
-        result.setMessage("데이터를 정상적으로 업데이트함");
+        result.setMessage("OK");
+        result.setStatus(HttpStatus.OK);
         return result;
     }
 
-    public Response read(int page, String sortType)
+    public Response findPostFromDB(int page, String sortType,
+                                   int category, String searchQuery)
         throws Exception{
         //1페이지에 얼마나 보여줄지 결정
-        int range = 4;
+        int listTotal = 5;
 
         Response response = new Response();
 
-        int gap = page * range;
-        PagingEntity entity = new PagingEntity(gap, range, sortType);
+        //offset 값을 결정
+        int gap = (page - 1) * listTotal;
+        PagingEntity entity = new PagingEntity(gap, listTotal, sortType, category, searchQuery);
 
-        List<Board> result = repository.boardPaging(entity);
+        List<Board> result = repository.findPostFromDB(entity);
 
-        if(Objects.equals(result, null)) throw new Error("Paging End");
-
-        response.setMessage("정상적으로 불러옴");
+        response.setMessage("OK");
+        response.setStatus(HttpStatus.OK);
         response.setData(result);
 
         return response;
 
     }
 
-    public Response delete(Long boardId)
+    public Response findTotalByAll()
+            throws Exception{
+
+        Response response = new Response();
+
+        //총합을 가져옴
+        int total = repository.findTotalByAll();
+
+        response.setMessage("OK");
+        response.setData(total);
+        response.setStatus(HttpStatus.OK);
+
+        return response;
+    }
+
+    public Response deleteByBoardId(Long boardId)
         throws Exception{
 
-        Response result = new Response();
+        Response response = new Response();
 
-        int deleteResult = repository.delete(boardId);
+        int deleteResult = repository.deleteByBoardId(boardId);
 
         if(deleteResult != 1) throw new Error("Board Delete Error");
 
-        result.setMessage("정상적으로 데이터가 삭제 되었습니다");
-        return result;
+        response.setMessage("정상적으로 데이터가 삭제 되었습니다");
+        response.setStatus(HttpStatus.OK);
+
+        return response;
     }
 
 }
