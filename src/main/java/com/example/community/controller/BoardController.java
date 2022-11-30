@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.Objects;
 
 @RestController
@@ -31,11 +32,9 @@ public class BoardController {
     BoardService boardService;
 
     @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public String  test(@RequestParam String a){
-        if(Objects.equals(a, "")){
-            System.out.println("testValue is Null");
-        }
-        return a;
+    public Date  test(){
+        Date nowDate = new Date();
+        return nowDate;
 
     }
 

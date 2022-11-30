@@ -19,7 +19,7 @@
 
     <!--  update query  -->
     <update id="plusCount" parameterType="Long">
-        UPDATE board_count_tb SET countValue = (SELECT countValue FROM board_count_tb WHERE boardId = #{boardId}) WHERE boardId = #{boardId}
+        UPDATE board_count_tb SET countValue = countValue+1 WHERE boardId = #{boardId}
     </update>
 
     <!--  delete query  -->

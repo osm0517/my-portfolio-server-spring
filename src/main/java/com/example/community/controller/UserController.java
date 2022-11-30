@@ -115,8 +115,8 @@ public class UserController {
                 String refreshToken = jwtConfig.createRefreshToken(userId, Arrays.asList("ROLE_USER"));
 
 
-                Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration);
-                Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration);
+                Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration, "/");
+                Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration, "/");
                 //httponly 설정이 안 된 cookie 로그인이 됐는지 클라이언트에서 확인하기 위함
                 Cookie loginCheckCookie = cookieService.loginCheckCookie(accessExpiration);
 

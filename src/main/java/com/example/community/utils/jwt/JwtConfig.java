@@ -122,7 +122,10 @@ public class JwtConfig {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(accessSecretKey).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
-        } catch (ExpiredJwtException e) {
+        } catch (ExpiredJwtException | MalformedJwtException e) {
+            System.out.println("==========");
+            System.out.println("JWT validateToken exception => "+ e.getMessage());
+            System.out.println("==========");
             return false;
         }
     }
