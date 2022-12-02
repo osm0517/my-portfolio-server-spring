@@ -1,5 +1,6 @@
 package com.example.community.service;
 
+import io.jsonwebtoken.Jwts;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
@@ -49,5 +50,10 @@ public class CookieService {
         catch (NullPointerException e){
             return false;
         }
+    }
+
+    //userId를 추출해서 반환
+    public String searchUserIdByCookie(String token, String accessSecretKey){
+        return Jwts.parser().setSigningKey(accessSecretKey).parseClaimsJws(token).getBody().getSubject();
     }
 }

@@ -82,12 +82,11 @@ public class UserController {
 
     @RequestMapping("/test")
     public Object  dd(HttpServletRequest request) {
-//        accessKey = Base64.getEncoder().encodeToString(accessKey.getBytes());
+        //header에서 access쿠키 값을 가져옴
         String token = jwtConfig.resolveToken(request);
-        System.out.println("token = " + token);
-        System.out.println("accessKey = " + accessKey);
-        Claims claims = Jwts.parser().setSigningKey(accessKey).parseClaimsJws(token).getBody();
-        return claims.get("roles");
+        //해당 값에서 userId값을 가져옴
+        String userId = cookieService.searchUserIdByCookie(token, accessKey);
+        return userId;
     }
 
 

@@ -15,5 +15,5 @@ public class Scrap {
     private Long boardId;
 
     //스크랩을 해가는 사람의 id
-    private Long UserId;
+    private String UserId;
 }

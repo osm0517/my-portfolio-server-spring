@@ -99,12 +99,9 @@ public class JwtConfig {
             String[] b = new String[100];
             System.out.println("a.length => " + a.length);
             for(int i = 0; i < a.length; i++){
-                System.out.println(Arrays.toString(a[i].split("=")));
                 b = a[i].split("=");
                 if(Arrays.asList(b).contains("X-AUTH-TOKEN")) break;
             }
-            System.out.println("b => " + Arrays.toString(b));
-            System.out.println("return resolveToken => "+ b[0]);
             return b[1];
         }
         catch (NullPointerException e){
