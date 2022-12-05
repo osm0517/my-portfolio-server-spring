@@ -27,7 +27,7 @@ public interface UserRepository{
     //insert query
     int signup(User user);
 
-    int createAuth(Auth data);
+    void createAuth(Auth data);
 
 
 

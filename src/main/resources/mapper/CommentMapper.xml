@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 위 코드가 mapper 설정을 하는 코드 -->
+
+
+<!-- Mapper를 사용하는 Repository의 전체 경로를 적어줘야함. -->
+<mapper namespace="com.example.community.repository.CommentRepository">
+    <!--  select query  -->
+    <select id="selectCommentById" parameterType="long" resultType="Comment">
+        SELECT userId, comment FROM comment_tb WHERE boardId = #{boardId}
+    </select>
+
+    <select id="commentTotal" parameterType="long" resultType="int">
+        SELECT count(*) FROM comment_tb WHERE boardId = #{boardId}
+    </select>
+    <!--  insert query  -->
+    <insert id="createComment" parameterType="Comment">
+        INSERT INTO comment_tb(userId, boardId, comment) VALUES(#{userId}, #{boardId}, #{comment})
+    </insert>
+
+    <insert id="addComment" parameterType="Comment">
+        INSERT INTO comment_sub_tb(userId, commentId, comment) VALUES(#{userId}, #{commentId}, #{comment})
+    </insert>
+
+    <insert id="reportComment" parameterType="Comment">
+        INSERT INTO comment_tb(userId, boardId, comment) VALUES(#{userId}, #{boardId}, #{comment})
+    </insert>
+    <!--  update query  -->
+
+    <!--  delete query  -->
+    <delete id="deleteMyComment" parameterType="Comment">
+        DELETE FROM
+        <choose>
+            <when test="boardId != null">comment_tb WHERE boardId = #{boardId}</when>
+            <when test="commentId != null">comment_sub_tb WHERE commentId = #{commentId}</when>
+        </choose>
+    </delete>
+
+    <delete id="deleteUserComment" parameterType="Comment">
+        DELETE FROM
+        <choose>
+            <when test="boardId != null">comment_tb WHERE boardId = #{boardId}</when>
+            <when test="commentId != null">comment_sub_tb WHERE commentId = #{commentId}</when>
+        </choose>
+    </delete>
+</mapper>
