@@ -12,37 +12,29 @@
         SELECT userId, comment FROM comment_tb WHERE boardId = #{boardId}
     </select>
 
+    <select id="selectIdByBoardId" parameterType="long" resultType="Integer">
+        SELECT id FROM comment_tb WHERE boardId = #{boardId}
+    </select>
+
     <select id="commentTotal" parameterType="long" resultType="int">
         SELECT count(*) FROM comment_tb WHERE boardId = #{boardId}
     </select>
     <!--  insert query  -->
     <insert id="createComment" parameterType="Comment">
-        INSERT INTO comment_tb(userId, boardId, comment) VALUES(#{userId}, #{boardId}, #{comment})
+        INSERT INTO comment_tb(userId, comment) VALUES(#{userId}, #{comment})
     </insert>
 
-    <insert id="addComment" parameterType="Comment">
-        INSERT INTO comment_sub_tb(userId, commentId, comment) VALUES(#{userId}, #{commentId}, #{comment})
-    </insert>
+<!--    <insert id="addComment" parameterType="Comment">-->
+<!--        INSERT INTO comment_sub_tb(userId, commentId, comment) VALUES(#{userId}, #{commentId}, #{comment})-->
+<!--    </insert>-->
 
-    <insert id="reportComment" parameterType="Comment">
-        INSERT INTO comment_tb(userId, boardId, comment) VALUES(#{userId}, #{boardId}, #{comment})
+    <insert id="reportComment" parameterType="Report">
+        INSERT INTO comment_report_tb(reportType, commentId) VALUES(#{reportType}, #{commentId})
     </insert>
     <!--  update query  -->
 
     <!--  delete query  -->
-    <delete id="deleteMyComment" parameterType="Comment">
-        DELETE FROM
-        <choose>
-            <when test="boardId != null">comment_tb WHERE boardId = #{boardId}</when>
-            <when test="commentId != null">comment_sub_tb WHERE commentId = #{commentId}</when>
-        </choose>
-    </delete>
-
-    <delete id="deleteUserComment" parameterType="Comment">
-        DELETE FROM
-        <choose>
-            <when test="boardId != null">comment_tb WHERE boardId = #{boardId}</when>
-            <when test="commentId != null">comment_sub_tb WHERE commentId = #{commentId}</when>
-        </choose>
+    <delete id="deleteComment" parameterType="int">
+        DELETE FROM comment_tb WHERE id = #{commentId}
     </delete>
 </mapper>
