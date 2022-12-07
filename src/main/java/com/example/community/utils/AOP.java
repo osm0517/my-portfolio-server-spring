@@ -3,24 +3,39 @@ package com.example.community.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 
 @Aspect
 @Component
+@Slf4j
 public class AOP {
 
-    //가독성을 위해서 실행할 주소와 기능을 구분 짓기
-    @Pointcut("execution(* com.example.community.controller.BoardController.*(..))")
-    private void cut() {}
+    //시간을 측정하기 위한 변수
+    private Date time;
 
-    @Before(value = "cut()")
-    public void test(JoinPoint joinPoint){
-        System.out.println("JoinPoint = "+ joinPoint);
-        System.out.println("AOP test");
+    //가독성을 위해서 실행할 주소와 기능을 구분 짓기
+    @Pointcut("execution(* com.example.community.controller.*.*(..))")
+    private void controllerPoint() {}
+
+    @Before(value = "controllerPoint()")
+    public void controllerBefore(JoinPoint joinPoint){
+        time = new Date();
+    }
+    @After(value = "controllerPoint()")
+    public void controllerAfter(JoinPoint joinPoint){
+        Date date = new Date();
+        log.info("==========");
+        log.info(joinPoint.toShortString());
+        log.info("operation time = {} ms",date.getTime() - time.getTime());
+        log.info("==========");
+    }
+
+    @AfterThrowing
+    public void controllerThrowing(JoinPoint joinPoint){
+
     }
 }

@@ -6,6 +6,7 @@ import com.example.community.dto.Response;
 import com.example.community.service.CommentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +27,10 @@ public class CommentController {
     CommentService commentService;
 
     @ApiOperation(value = "테스트용")
-    @RequestMapping(value = "/test", method = RequestMethod.POST)
-    public void test(@RequestBody Comment comment){
-
-        System.out.println("test=>" + comment);
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public void test(@RequestParam int a){
+        if(a == 1){
+        throw new NullPointerException("nullpointer test");}
     }
 
     //지금 생각으로는 완벽

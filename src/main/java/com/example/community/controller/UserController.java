@@ -16,6 +16,7 @@ import io.jsonwebtoken.Jwts;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -30,12 +31,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.*;
 
 @RestController
 @RequestMapping("/user")
 @Api(tags = {"user 관련 API"})
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     @Autowired
     private BCryptService bCryptService;
@@ -80,7 +83,7 @@ public class UserController {
 
 
 
-    @RequestMapping("/test")
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
     public Object  dd(HttpServletRequest request) {
         //header에서 access쿠키 값을 가져옴
         String token = jwtConfig.resolveToken(request);
@@ -95,44 +98,34 @@ public class UserController {
     @ApiOperation(value = "로그인", notes = "2022.11.22 기준 로그인 시에" +
             "refresh token, access token, login check cookie를 제공" +
             "다시 한 번 손을 봐야할 듯 싶음")
-    public ResponseEntity<?> login(@RequestBody User user, HttpServletResponse servletResponse){
+    public ResponseEntity<?> login(@RequestBody User user,
+                                   HttpServletResponse servletResponse){
         /* 기본 단계지만 학습을 위해서 service에서 발생한 에러를
         * 현재 위치(controller)로 전송함
         * 여기서 에러를 처리*/
-        Response response = new Response();
-        HttpStatus status;
 
         String userId = user.getUserId();
         String password = user.getPassword();
         String auth = user.getAuth();
-        try{
-            response = userService.login(userId, password, auth);
-            status = response.getStatus();
 
-            if(status == HttpStatus.OK){
-                String accessToken = jwtConfig.createAccessToken(userId, Arrays.asList("ROLE_USER"));
-                String refreshToken = jwtConfig.createRefreshToken(userId, Arrays.asList("ROLE_USER"));
+        Response response = userService.login(userId, password, auth);
+        HttpStatus status = response.getStatus();
+
+        if(status == HttpStatus.OK){
+            String accessToken = jwtConfig.createAccessToken(userId, Arrays.asList("ROLE_USER"));
+            String refreshToken = jwtConfig.createRefreshToken(userId, Arrays.asList("ROLE_USER"));
 
 
-                Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration, "/");
-                Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration, "/");
-                //httponly 설정이 안 된 cookie 로그인이 됐는지 클라이언트에서 확인하기 위함
-                Cookie loginCheckCookie = cookieService.loginCheckCookie(accessExpiration);
+            Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration, "/");
+            Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration, "/");
+            //httponly 설정이 안 된 cookie 로그인이 됐는지 클라이언트에서 확인하기 위함
+            Cookie loginCheckCookie = cookieService.loginCheckCookie(accessExpiration);
 
-                servletResponse.addCookie(accessCookie);
-                servletResponse.addCookie(refreshCookie);
-                servletResponse.addCookie(loginCheckCookie);
-            }
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("UserController Login Method Catch Exception");
-            System.out.println("Login Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController Login Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
+            servletResponse.addCookie(accessCookie);
+            servletResponse.addCookie(refreshCookie);
+            servletResponse.addCookie(loginCheckCookie);
         }
+
         return new ResponseEntity<>(response, status);
     }
 
@@ -158,23 +151,9 @@ public class UserController {
     @ApiOperation(value = "정보 수정", notes = "회원정보를 수정하는 로직")
     public ResponseEntity<?> change(@RequestBody User user){
 
-        Response response = new Response();
-        HttpStatus status;
+        Response response = userService.change(user);
+        HttpStatus status = response.getStatus();
 
-        try{
-            response = userService.change(user);
-            status = response.getStatus();
-            
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("UserController Change Method Catch Exception");
-            System.out.println("Change Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController Change Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
         return new ResponseEntity<>(response, status);
     }
 
@@ -182,31 +161,19 @@ public class UserController {
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     @ApiOperation(value = "정보 수정")
     public ResponseEntity<?> delete(@RequestBody String email){
-        Response response = new Response();
         HttpStatus status;
 
-        try {
-            response = userService.delete(email);
+        Response response = userService.delete(email);
 
-            //정상적으로 삭제되면 홈 화면으로 redirect
-            if(Objects.equals(response.getStatus(), HttpStatus.OK)){
-                HttpHeaders headers = new HttpHeaders();
-                headers.setLocation(URI.create("/"));
-                status = HttpStatus.MOVED_PERMANENTLY;
-                return new ResponseEntity<>(headers, status);
-            }
-
-            status = response.getStatus();
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("UserController Delete Method Catch Exception");
-            System.out.println("Delete Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController Delete Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        //정상적으로 삭제되면 홈 화면으로 redirect
+        if(Objects.equals(response.getStatus(), HttpStatus.OK)){
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create("/"));
+            status = HttpStatus.MOVED_PERMANENTLY;
+            return new ResponseEntity<>(headers, status);
         }
+
+        status = response.getStatus();
         return new ResponseEntity<>(response, status);
     }
 
@@ -216,32 +183,10 @@ public class UserController {
             "확인하기 위해 사용하는 api로 ID, NICKNAME, EMAIL을 확인할 수 있음")
     public ResponseEntity<?> overlap(@PathVariable String type, @RequestBody User user){
 
-        Response response = new Response();
-        HttpHeaders headers = new HttpHeaders();
-        HttpStatus status;
-        System.out.println(user);
+        log.debug("overlap user information = {}", user);
 
-        try {
-            response = userService.overlap(type, user);
-            status = response.getStatus();
-
-//            //type = email & 반환값이 존재한다 -> 이미 사용자가 가입을 했다
-//            if(Objects.equals(type, "email") && Objects.equals(response.getStatus(), HttpStatus.CONFLICT)){
-//                headers.setLocation(URI.create("http://localhost:3000/community-front/user/search/id"));
-//                status = HttpStatus.MOVED_PERMANENTLY;
-//
-//                return new ResponseEntity<>(headers,status);
-//            }
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("UserController Overlap Method Catch Exception");
-            System.out.println("Overlap Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController Overlap Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        Response response = userService.overlap(type, user);
+        HttpStatus status = response.getStatus();
 
         return new ResponseEntity<>(response, status);
     }
@@ -252,25 +197,12 @@ public class UserController {
     @ApiOperation(value = "인증메일 전송", notes = "email을 중복확인을 한 후에" +
             "해당 메일이 실제로 존재하는지 와 해당 메일이 실제로 사용자가 사용하는 메일인지를" +
             "확인하기 위해서 메일을 전송함")
-    public ResponseEntity<?> overlapMailPost(@RequestBody Auth auth){
+    public ResponseEntity<?> overlapMailPost(@RequestBody String email){
 
-        Response response = new Response();
-        HttpStatus status;
-        System.out.println(auth.getEmail());
-        try {
-            response = userService.mail(auth.getEmail());
-            status = response.getStatus();
-        }catch (Exception e){
+        log.debug("overlapMail email = {}", email);
 
-            System.out.println("==========");
-            System.out.println("UserController overlapMail Method Catch Exception");
-            System.out.println("overlapMail Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController overlapMail Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        Response response = userService.mail(email);
+        HttpStatus status = response.getStatus();
 
         return new ResponseEntity<>(response, status);
     }
@@ -279,41 +211,15 @@ public class UserController {
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
     @ApiOperation(value = "인증번호 인증", notes = "사용자가 메일로 받은 인증번호를" +
             "인증하기 위해서 사용함")
-    public ResponseEntity<?> auth(@RequestParam(name = "email") String email, @RequestParam(name = "randomString") String randomString){
+    public ResponseEntity<?> auth(@RequestParam(name = "email") String email,
+                                  @RequestParam(name = "randomString") String randomString){
 
-        Response response = new Response();
-        HttpStatus status;
-        System.out.println(email);
-        System.out.println(randomString);
+        log.debug("auth to email = {}", email);
+        log.debug("auth randomString = {}", randomString);
 
-        try {
-            response = userService.auth(new Auth(email, randomString));
-            status = response.getStatus();
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("UserController Auth Method Catch Exception");
-            System.out.println("Auth Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("UserController Auth Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        Response response = userService.auth(new Auth(email, randomString));
+        HttpStatus status = response.getStatus();
 
         return new ResponseEntity<>(response, status);
-    }
-
-    //error handler
-    @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<?> nullException(NullPointerException a){
-        Response result = new Response();
-        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Error.class)
-    public ResponseEntity<?> nullException(Error a){
-        Response result = new Response();
-        result.setMessage(a.getMessage());
-        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
     }
 }

@@ -38,5 +38,5 @@ public interface UserRepository{
     //delete query
     void delete(String email);
 
-    void deleteAuth(String email);
+    int deleteAuth(String email);
 }
