@@ -1,27 +1,21 @@
 package com.example.community.service;
 
-import com.example.community.dto.Board;
 import com.example.community.dto.Response;
 import com.example.community.dto.Scrap;
-import com.example.community.dto.Search;
-import com.example.community.repository.BoardRepository;
 import com.example.community.repository.ScrapRepository;
 import com.example.community.utils.jwt.CustomUserDetailService;
 import com.example.community.utils.jwt.JwtConfig;
-import com.example.community.vo.BoardUpdateEntity;
-import com.example.community.vo.PagingEntity;
-import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class ScrapService {
 
     @Autowired
@@ -39,8 +33,7 @@ public class ScrapService {
     @Value("${jwt.access-secretKey}")
     private String accessSecretKey;
 
-    public Response create(Long boardId, HttpServletRequest request)
-        throws Exception{
+    public Response create(Long boardId, HttpServletRequest request){
 
         Response result = new Response();
 
@@ -59,8 +52,7 @@ public class ScrapService {
         return result;
     }
 
-    public Response delete(long boardId, HttpServletRequest request)
-            throws Exception{
+    public Response delete(long boardId, HttpServletRequest request){
 
         Response result = new Response();
 
@@ -79,8 +71,7 @@ public class ScrapService {
         return result;
     }
 
-    public Response count(Scrap scrap)
-            throws Exception{
+    public Response count(Scrap scrap){
 
         Response result = new Response();
         long value;

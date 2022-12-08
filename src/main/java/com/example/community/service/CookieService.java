@@ -1,12 +1,14 @@
 package com.example.community.service;
 
 import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.Cookie;
 import java.util.List;
 
 @Component
+@Slf4j
 public class CookieService {
 
     public Cookie createCookie(String key, String value, long time, String path){

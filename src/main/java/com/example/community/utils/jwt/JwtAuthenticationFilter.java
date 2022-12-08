@@ -1,6 +1,7 @@
 package com.example.community.utils.jwt;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private final JwtConfig jwtTokenProvider;
@@ -30,7 +32,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰이 유효하면 토큰으로부터 유저 정보를 받아옵니다.
             UsernamePasswordAuthenticationToken authentication = jwtTokenProvider.getAuthentication(token);
-            System.out.println("auth" + authentication);
+            log.info("auth {}", authentication);
             // SecurityContext 에 Authentication 객체를 저장합니다.
             SecurityContextHolder.getContext().setAuthentication(authentication);
 

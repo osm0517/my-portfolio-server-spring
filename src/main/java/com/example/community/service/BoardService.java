@@ -2,10 +2,10 @@ package com.example.community.service;
 
 import com.example.community.dto.Board;
 import com.example.community.dto.Response;
-import com.example.community.dto.Search;
 import com.example.community.repository.BoardRepository;
 import com.example.community.vo.BoardUpdateEntity;
 import com.example.community.vo.PagingEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,17 +14,18 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class BoardService {
 
     @Autowired
     BoardRepository repository;
 
     public Response write(Board board)
-        throws Exception{
+        throws NullPointerException {
         Response response = new Response();
 
         //글의 내용이 존재하지 않으면 NullPointerException을 발생
-        if(Objects.equals(board.getBoardText(), null)){ throw new NullPointerException("board text null!!!!"); }
+        if(Objects.equals(board.getBoardText(), null)){ throw new Error("board text null!!!!"); }
 
         int boardResult = repository.writeBoard(board);
 
@@ -38,8 +39,7 @@ public class BoardService {
         return response;
     }
 
-    public Response detail(Long boardId)
-            throws Exception{
+    public Response detail(Long boardId){
 
         Response response = new Response();
         Board boardData = repository.readDetail(boardId);
@@ -50,27 +50,8 @@ public class BoardService {
         return response;
     }
 
-    // 검색을 할 때에 searchType은 총 4가지로 일단은 나눔
-    // 작성자, 제목, 내용, 제목+내용
-    // 일단은 제목 + 내용 하는 것은 뒤로 미루고 3가지만 먼저
-    public Response search(Search search)
-            throws Exception{
-
-        Response result = new Response();
-
-        System.out.println("BoardService Input = "+search);
-
-        List<String> boardData = repository.searchBoard(search);
-
-        if(Objects.equals(boardData, null)) throw new Error("Data Not Found");
-
-        result.setData(boardData);
-        result.setMessage("데이터가 정상적으로 불러옴");
-        return result;
-    }
-
     public Response updateByBoardId(Long boardId, Board board)
-            throws Exception{
+            throws Error{
 
         Response result = new Response();
         BoardUpdateEntity entity = new BoardUpdateEntity(boardId, board);
@@ -94,8 +75,7 @@ public class BoardService {
     }
 
     public Response findPostFromDB(int page, String sortType,
-                                   int category, String searchQuery)
-        throws Exception{
+                                   int category, String searchQuery){
         //1페이지에 얼마나 보여줄지 결정
         int listTotal = 5;
 
@@ -115,8 +95,7 @@ public class BoardService {
 
     }
 
-    public Response findTotalByAll()
-            throws Exception{
+    public Response findTotalByAll(){
 
         Response response = new Response();
 
@@ -130,14 +109,11 @@ public class BoardService {
         return response;
     }
 
-    public Response deleteByBoardId(Long boardId)
-        throws Exception{
+    public Response deleteByBoardId(Long boardId){
 
         Response response = new Response();
 
         int deleteResult = repository.deleteByBoardId(boardId);
-
-        if(deleteResult != 1) throw new Error("Board Delete Error");
 
         response.setMessage("정상적으로 데이터가 삭제 되었습니다");
         response.setStatus(HttpStatus.OK);

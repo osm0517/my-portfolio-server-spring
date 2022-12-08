@@ -49,34 +49,20 @@ public class BoardCountController {
             "//cookie path 속성에 따라서 조회를 했는지를 판단하는 cookie를 전송해서" +
             "체크함")
     @RequestMapping(value = "/{boardId}", method = RequestMethod.POST)
-    public ResponseEntity<?> plus(@PathVariable int boardId, HttpServletResponse servletResponse,
+    public ResponseEntity<?> plus(@PathVariable long boardId, HttpServletResponse servletResponse,
                                   HttpServletRequest servletRequest){
-        Long id = (long) boardId;
-        Response response = new Response();
-        HttpStatus status;
+
         String cookieString = servletRequest.getHeader("Cookie");
 
-        try {
-            response = countService.plus(id, cookieString);
+        Response response = countService.plus(boardId, cookieString);
 
-            Object checkCookie = response.getData();
-            if(!Objects.equals(checkCookie, null)){
-                Cookie cookie = cookieService.createCookie((String)checkCookie, "value", oneDayTime
-                ,visitCheckCommonPath+"boardId");
-                servletResponse.addCookie(cookie);
-            }
-            status = response.getStatus();
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("CountController Plus Method Catch Exception");
-            System.out.println("Plus Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("CountController Plus Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-
+        Object checkCookie = response.getData();
+        if(!Objects.equals(checkCookie, null)){
+            Cookie cookie = cookieService.createCookie((String)checkCookie, "value", oneDayTime
+            ,visitCheckCommonPath+"boardId");
+            servletResponse.addCookie(cookie);
         }
+        HttpStatus status = response.getStatus();
 
         return new ResponseEntity<>(response, status);
     }
@@ -84,24 +70,10 @@ public class BoardCountController {
     //게시물의 조회수를 조회하기 위해서 사용함
     @ApiOperation(value = "조회수를 조회할 때 사용")
     @RequestMapping(value = "/{boardId}", method = RequestMethod.GET)
-    public ResponseEntity<?> select(@PathVariable int boardId){
-        Long id = (long) boardId;
-        Response response = new Response();
-        HttpStatus status;
+    public ResponseEntity<?> select(@PathVariable long boardId){
 
-        try {
-            response = countService.select(id);
-            status = response.getStatus();
-        }catch (Exception e){
-            System.out.println("==========");
-            System.out.println("CountController Select Method Catch Exception");
-            System.out.println("Select Error => " + e);
-            System.out.println("==========");
-
-            response.setMessage("CountController Select Method Catch Exception");
-            response.setData(e);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-        }
+        Response response = countService.select(boardId);
+        HttpStatus status = response.getStatus();
 
         return new ResponseEntity<>(response, status);
     }

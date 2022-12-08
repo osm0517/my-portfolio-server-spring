@@ -2,6 +2,7 @@ package com.example.community.utils.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtConfig {
 
     @Value("${jwt.access-secretKey}")
@@ -85,19 +87,12 @@ public class JwtConfig {
     // Request의 Header에서 cookie 값을 가져옵니다.
     // 가져온 쿠키 값을 split으로 잘라서 X-AUTH-TOKEN 값을 추출
     public String resolveToken(HttpServletRequest request) {
-        System.out.println("accessKey JwtConfig => " + accessSecretKey);
-        System.out.println("resolveToken => " + request.getHeader("cookie"));
+        log.info("get cookie => {}", request.getHeader("cookie"));
         try{
             String value = request.getHeader("cookie");
             String[] a = value.split("; ");
-            System.out.println("a => " + Arrays.toString(a));
-            int val = Arrays.asList(a).indexOf("X-AUTH-TOKEN");
-            System.out.println("============================");
-            System.out.println("val = > " + val);
-            System.out.println("contains => " + Arrays.asList(a).contains("X-AUTH-TOKEN"));
-            System.out.println("============================");
+            log.debug("contains => {}", Arrays.asList(a).contains("X-AUTH-TOKEN"));
             String[] b = new String[100];
-            System.out.println("a.length => " + a.length);
             for(int i = 0; i < a.length; i++){
                 b = a[i].split("=");
                 if(Arrays.asList(b).contains("X-AUTH-TOKEN")) break;
@@ -105,11 +100,11 @@ public class JwtConfig {
             return b[1];
         }
         catch (NullPointerException e){
-            System.out.println("null");
+            log.warn("resolveToken Null");
             return null;
         }
         catch (ExpiredJwtException e){
-            System.out.println("token 만료");
+            log.info("expired token");
             return null;
         }
     }
@@ -120,9 +115,7 @@ public class JwtConfig {
             Jws<Claims> claims = Jwts.parser().setSigningKey(accessSecretKey).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
         } catch (ExpiredJwtException | MalformedJwtException e) {
-            System.out.println("==========");
-            System.out.println("JWT validateToken exception => "+ e.getMessage());
-            System.out.println("==========");
+            log.info("JWT validateToken exception => {}", e.getMessage());
             return false;
         }
     }

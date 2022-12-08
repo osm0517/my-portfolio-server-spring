@@ -37,18 +37,10 @@ public class CommentController {
     @ApiOperation(value = "댓글 달기", notes = "글에 댓글 추가")
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public ResponseEntity<?> createComment(@RequestBody Comment comment){
-        Response response = new Response();
-        HttpStatus status;
-        try {
-            response = commentService.createComment(comment);
-            status = response.getStatus();
-        }catch (Exception e){
-            String error = e.getMessage();
-            response.setMessage("Fail to Request");
-            response.setData(error);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            System.out.println("Create Error =>"+error);
-        }
+
+        Response response = commentService.createComment(comment);
+        HttpStatus status = response.getStatus();
+
         return new ResponseEntity<>(response, status);
     }
 
@@ -76,18 +68,10 @@ public class CommentController {
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     public ResponseEntity<?> deleteComment(@RequestParam long boardId, @RequestParam int commentId,
                                            HttpServletRequest request){
-        Response response = new Response();
-        HttpStatus status;
-        try {
-            response = commentService.deleteComment(boardId, commentId, request);
-            status = response.getStatus();
-        }catch (Exception e){
-            String error = e.getMessage();
-            response.setMessage("Fail to Request");
-            response.setData(error);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            System.out.println("Delete Error =>"+error);
-        }
+
+        Response response = commentService.deleteComment(boardId, commentId, request);
+        HttpStatus status = response.getStatus();
+
         return new ResponseEntity<>(response, status);
     }
 
@@ -95,18 +79,10 @@ public class CommentController {
     @ApiOperation(value = "댓글 신고", notes = "댓글을 신고")
     @RequestMapping(value = "/report", method = RequestMethod.POST)
     public ResponseEntity<?> reportComment(Report report){
-        Response response = new Response();
-        HttpStatus status;
-        try {
-            response = commentService.reportComment(report);
-            status = response.getStatus();
-        }catch (Exception e){
-            String error = e.getMessage();
-            response.setMessage("Fail to Request");
-            response.setData(error);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            System.out.println("Report Error =>"+error);
-        }
+
+        Response response = commentService.reportComment(report);
+        HttpStatus status = response.getStatus();
+
         return new ResponseEntity<>(response, status);
     }
 
@@ -114,18 +90,10 @@ public class CommentController {
     @ApiOperation(value = "댓글 목록을 불러옴", notes = "글에 달린 댓글 목록을 가져옴")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     public ResponseEntity<?> searchComment(@RequestParam long boardId){
-        Response response = new Response();
-        HttpStatus status;
-        try {
-            response = commentService.selectCommentById(boardId);
-            status = response.getStatus();
-        }catch (Exception e){
-            String error = e.getMessage();
-            response.setMessage("Fail to Request");
-            response.setData(error);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            System.out.println("Select Comment Error =>"+error);
-        }
+
+        Response response = commentService.selectCommentById(boardId);
+        HttpStatus status = response.getStatus();
+
         return new ResponseEntity<>(response, status);
     }
 
@@ -142,18 +110,10 @@ public class CommentController {
     @ApiOperation(value = "댓글 총 개수 불러오기", notes = "글에 달린 댓글의 총 개수를 가져옴")
     @RequestMapping(value = "/total", method = RequestMethod.GET)
     public ResponseEntity<?> getCommentTotal(@RequestParam long boardId){
-        Response response = new Response();
-        HttpStatus status;
-        try {
-            response = commentService.selectTotalById(boardId);
-            status = response.getStatus();
-        }catch (Exception e){
-            String error = e.getMessage();
-            response.setMessage("Fail to Request");
-            response.setData(error);
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            System.out.println("Select Total Error =>"+error);
-        }
+
+        Response response = commentService.selectTotalById(boardId);
+        HttpStatus status = response.getStatus();
+
         return new ResponseEntity<>(response, status);
     }
 }
