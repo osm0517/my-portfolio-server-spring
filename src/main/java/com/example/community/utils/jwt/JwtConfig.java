@@ -87,7 +87,7 @@ public class JwtConfig {
     // Request의 Header에서 cookie 값을 가져옵니다.
     // 가져온 쿠키 값을 split으로 잘라서 X-AUTH-TOKEN 값을 추출
     public String resolveToken(HttpServletRequest request) {
-        log.info("get cookie => {}", request.getHeader("cookie"));
+        log.debug("get cookie => {}", request.getHeader("cookie"));
         try{
             String value = request.getHeader("cookie");
             String[] a = value.split("; ");

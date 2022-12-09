@@ -21,6 +21,9 @@ public class AOP {
     @Pointcut("execution(* com.example.community.controller.*.*(..))")
     private void controllerPoint() {}
 
+    @Pointcut("execution(* com.example.community.repository.*.*(..))")
+    private void repositoryPoint() {}
+
     @Before(value = "controllerPoint()")
     public void controllerBefore(JoinPoint joinPoint){
         time = new Date();
@@ -34,8 +37,17 @@ public class AOP {
         log.info("==========");
     }
 
-    @AfterThrowing
-    public void controllerThrowing(JoinPoint joinPoint){
+    @AfterThrowing(value = "repositoryPoint()")
+    public void repositoryThrowing(JoinPoint joinPoint){
+        log.info("DB Operation Method Throwing, point = {}", joinPoint);
 
+        log.debug("DB Operation Method Throwing, point = {}", joinPoint);
+    }
+
+    @AfterReturning(value = "repositoryPoint()")
+    public void repositoryReturning(JoinPoint joinPoint){
+        log.info("DB Operation Method Returning, point = {}", joinPoint);
+
+        log.debug("DB Operation Method Returning, point = {}", joinPoint);
     }
 }

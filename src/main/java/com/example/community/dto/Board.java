@@ -25,6 +25,9 @@ public class Board {
     @ApiParam(value = "글 분류 아이디")
     private Integer categoryId;
 
+    @ApiParam(value = "글 상세 분류 아이디")
+    private Integer detailCategoryId;
+
     @ApiParam(value = "글 내용")
     private String boardText;
 }
