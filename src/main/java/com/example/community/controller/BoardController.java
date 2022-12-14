@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -26,9 +28,11 @@ public class BoardController {
     BoardService boardService;
 
     @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public Date  test(){
-        Date nowDate = new Date();
-        return nowDate;
+    public ResponseEntity<?>  test(){
+        HashMap<String, String > data = new HashMap<String, String>();
+        data.put("name", "seongmin");
+        data.put("nickname", "hehe");
+        return new ResponseEntity<>(data, HttpStatus.OK);
 
     }
 
