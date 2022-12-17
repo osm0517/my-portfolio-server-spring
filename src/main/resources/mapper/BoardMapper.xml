@@ -70,7 +70,7 @@
     </update>
 
     <!--  delete query  -->
-    <delete id="delete" parameterType="Long">
+    <delete id="deleteByBoardId" parameterType="Long">
         DELETE FROM board_tb WHERE id = #{boardId}
     </delete>
 

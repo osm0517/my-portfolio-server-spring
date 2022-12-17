@@ -20,7 +20,7 @@ public class Board {
     private String name;
 
     @ApiParam(value = "작성자 아이디")
-    private Integer userId;
+    private String userId;
 
     @ApiParam(value = "글 분류 아이디")
     private Integer categoryId;

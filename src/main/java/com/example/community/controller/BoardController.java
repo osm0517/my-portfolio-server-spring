@@ -68,9 +68,8 @@ public class BoardController {
     }
 
     //지금 생각으로 완벽
-    @ApiOperation(value = "글 수정", notes = "글을 수정하는 API임" +
-            "현재는 HTTPMethod를 PATCH로 하였으나, 공식 문서를 찾아보니" +
-            "POST에 조금 더 가까운 것 같음")
+    @ApiOperation(value = "글 수정", notes = "수정할 수 있는 내용으로는" +
+            "1. 본문 2. 제목 3. 카테고리")
     @RequestMapping(value = "/update", method = RequestMethod.POST)
     public ResponseEntity<?> update(@RequestParam Long boardId, @RequestBody Board board){
         Response response = new Response();

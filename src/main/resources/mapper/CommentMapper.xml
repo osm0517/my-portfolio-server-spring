@@ -21,7 +21,7 @@
     </select>
     <!--  insert query  -->
     <insert id="createComment" parameterType="Comment">
-        INSERT INTO comment_tb(userId, comment) VALUES(#{userId}, #{comment})
+        INSERT INTO comment_tb(userId, boardId, comment) VALUES(#{userId}, #{boardId}, #{comment})
     </insert>
 
 <!--    <insert id="addComment" parameterType="Comment">-->

@@ -14,8 +14,6 @@ public class Comment {
 
     private long boardId;
 
-    private long commentId;
-
     private String userId;
 
     private String comment;

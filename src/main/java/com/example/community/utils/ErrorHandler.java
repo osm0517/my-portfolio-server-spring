@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.util.NestedServletException;
 
 import java.sql.SQLException;
 
@@ -60,4 +61,20 @@ public class ErrorHandler {
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+//    @ExceptionHandler(NestedServletException.class)
+//    public ResponseEntity<?> NestedServletExceptionHandler(NestedServletException exception){
+//
+//        log.info("==========");
+//        log.info("SQLException Pointer = {}", exception.toString());
+//        log.info("==========");
+//
+//        log.error(exception.toString());
+//
+//        Response response = new Response();
+//        response.setMessage("INTERNAL_SERVER_ERROR(MAPPER ID NOT MATCHING)");
+//        response.setData(exception.toString());
+//
+//        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 }

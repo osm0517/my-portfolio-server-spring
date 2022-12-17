@@ -33,8 +33,6 @@ public class CommentService {
 
     private String checkAdminString = "_ADMIN";
 
-    private String defaultComment = "정말 좋아요:)";
-
 //    select
     public Response selectCommentById(long boardId){
 
@@ -63,6 +61,8 @@ public class CommentService {
 //    insert
     public Response createComment(Comment comment){
 
+        String defaultComment = "정말 좋아요:)";
+
         Response response = new Response();
         //댓글 내용이 없다면 default 값을 넣어서 댓글을 작성함.
         String text = comment.getComment();
@@ -76,6 +76,7 @@ public class CommentService {
             response.setStatus(HttpStatus.BAD_REQUEST);
         }
         response.setMessage("OK");
+        response.setData(comment);
         response.setStatus(HttpStatus.OK);
 
         return response;

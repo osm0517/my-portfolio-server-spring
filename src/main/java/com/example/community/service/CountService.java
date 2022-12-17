@@ -41,7 +41,11 @@ public class CountService {
         if(Objects.equals(checkVisitByCookie, false)) {
             int plusResult = repository.plusCount(boardId);
 
-            if (plusResult != 1) throw new Error("plusCount Error");
+            if (plusResult != 1){
+                result.setMessage("COUNT PLUS FAIL");
+                result.setStatus(HttpStatus.BAD_REQUEST);
+                return result;
+            }
             //다시 증가시키지 않기 위해서 cookie에 key값을 controller로 넘겨줌
             result.setData(visitCheckCookie);
         }else {
@@ -60,6 +64,14 @@ public class CountService {
 
         Response response = new Response();
         Long selectResult = repository.selectCount(boardId);
+
+        if(Objects.equals(selectResult, null)){
+            response.setMessage("THIS BOARD_ID NOT EXIST");
+            response.setData(selectResult);
+            response.setStatus(HttpStatus.BAD_REQUEST);
+
+            return response;
+        }
 
         response.setMessage("OK");
         response.setData(selectResult);
