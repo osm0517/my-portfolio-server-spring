@@ -159,7 +159,7 @@ public class UserController {
 
     //지금 상태로는 완벽
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-    @ApiOperation(value = "정보 수정")
+    @ApiOperation(value = "계정 삭제")
     public ResponseEntity<?> delete(@RequestBody String email){
         HttpStatus status;
 

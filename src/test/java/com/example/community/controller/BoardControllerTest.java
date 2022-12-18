@@ -44,6 +44,8 @@ class BoardControllerTest {
     private String deleteURL = "/delete";
 //  parameter List
     private String boardIdValue = "1";
+//    삭제돼서 안될 수 있음 업데이트를 해야함
+    private String updateBoardId = "10";
     private String page = "1";
     private String category = "1";
     private String sortType = "latest";
@@ -97,7 +99,7 @@ class BoardControllerTest {
         mvc.perform(
                         post(BASE_URL + updateURL)
                                 .content(body)
-                                .param("boardId", boardIdValue)
+                                .param("boardId", updateBoardId)
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())

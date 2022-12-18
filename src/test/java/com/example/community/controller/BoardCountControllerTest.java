@@ -19,9 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BoardCountControllerTest {
 
     @Autowired
-    ObjectMapper mapper;
-
-    @Autowired
     MockMvc mvc;
 
     private String BASE_URL = "/count";

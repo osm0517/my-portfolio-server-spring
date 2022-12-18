@@ -41,7 +41,7 @@ class CommentControllerTest {
     private long boardId = 1;
     private String comment = "testComment";
     private String commentId = "1";
-    private String reportType = "testType";
+    private int reportType = 10;
 
     @Test
     @DisplayName("글에 댓글을 추가(내용 넣기)")

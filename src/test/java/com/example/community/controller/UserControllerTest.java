@@ -11,10 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,6 +35,10 @@ class UserControllerTest {
     private String signupURL = "/signup";
     private String loginURL = "/login";
     private String changeURL = "/change";
+    private String deleteURL = "/delete";
+    private String overlapURL = "/overlap";
+    private String mailURL = "/overlap/mail";
+    private String authURL = "/auth";
 
 //    variable list
     private String userId = "dhtjdals77";
@@ -40,6 +46,8 @@ class UserControllerTest {
     private String auth = "USER";
     private String name = "testName";
     private String nickname = "testNickname";
+    private String email = "testEmail";
+    private String authEmail = "okt0517@gmail.com";
 
     @Test
     @DisplayName(value = "회원가입 로직")
@@ -47,7 +55,6 @@ class UserControllerTest {
 
         String userId = "testId";
         String password = "testPwd";
-        String email = "testEmail";
 
 
         String body = mapper.writeValueAsString(
@@ -160,21 +167,131 @@ class UserControllerTest {
 
     @Test
     @DisplayName("계정 삭제")
-    void delete() {
+    void deleteTest() throws Exception {
+        //then
+        mvc.perform(delete(BASE_URL + deleteURL)
+                        .content(email) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 
     @Test
-    @DisplayName("중복확인")
-    void overlap() {
+    @DisplayName("중복확인(아이디)")
+    void overlapId() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .userId("rmsidehofk")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + overlapURL + "/userId")
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 
     @Test
-    @DisplayName("인증메일 전송")
-    void overlapMailPost() {
+    @DisplayName("중복확인(닉네임)")
+    void overlapNick() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .nickname("rmsidehofk")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + overlapURL + "/nickname")
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 
     @Test
-    @DisplayName("인증번호 인증")
-    void auth() {
+    @DisplayName("중복확인(이메일)")
+    void overlapEmail() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .email("rmsidehofk")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + overlapURL + "/email")
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+//    url parameter = userId
+//    input value = email
+    @Test
+    @DisplayName("중복확인(실패)")
+    void overlapFail() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .email("rmsidehofk")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + overlapURL + "/userId")
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("인증메일 전송(성공)")
+    void overlapMailPost() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .email(authEmail)
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + mailURL)
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isOk())
+                .andDo(print());
+    }
+
+//    정상적인 email을 입력하지 않음 -> ***@***.*** 형식을 지키지 않음
+    @Test
+    @DisplayName("인증메일 전송(실패)")
+    void overlapMailPostFail() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .email("okdhsod")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + mailURL)
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("인증번호 인증(실패)")
+    void auth() throws Exception {
+        MultiValueMap<String, String> parameter = new LinkedMultiValueMap<>();
+        parameter.add("email",authEmail);
+        parameter.add("randomString",authEmail);
+
+        mvc.perform(get(BASE_URL + authURL)
+                )
+                .andExpect(status().isBadRequest())
+                .andDo(print());
     }
 }
