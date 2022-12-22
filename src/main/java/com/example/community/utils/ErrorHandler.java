@@ -46,21 +46,21 @@ public class ErrorHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<?> SQLExceptionHandler(SQLException exception){
-
-        log.info("==========");
-        log.info("SQLException Pointer = {}", exception.toString());
-        log.info("==========");
-
-        log.error(exception.toString());
-
-        Response response = new Response();
-        response.setMessage("INTERNAL_SERVER_ERROR");
-        response.setData(exception.toString());
-
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler(SQLException.class)
+//    public ResponseEntity<?> SQLExceptionHandler(SQLException exception){
+//
+//        log.info("==========");
+//        log.info("SQLException Pointer = {}", exception.toString());
+//        log.info("==========");
+//
+//        log.error(exception.toString());
+//
+//        Response response = new Response();
+//        response.setMessage("INTERNAL_SERVER_ERROR");
+//        response.setData(exception.toString());
+//
+//        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
 //    @ExceptionHandler(NestedServletException.class)
 //    public ResponseEntity<?> NestedServletExceptionHandler(NestedServletException exception){

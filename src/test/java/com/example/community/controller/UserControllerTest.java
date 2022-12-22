@@ -3,8 +3,7 @@ package com.example.community.controller;
 import com.example.community.dto.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +13,10 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -22,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserControllerTest {
 
     @Autowired
@@ -41,7 +45,8 @@ class UserControllerTest {
     private String authURL = "/auth";
 
 //    variable list
-    private String userId = "dhtjdals77";
+    private String userId = "userId";
+    private String testId = "111";
     private String password = "kt1079616";
     private String auth = "USER";
     private String name = "testName";
@@ -51,19 +56,19 @@ class UserControllerTest {
 
     @Test
     @DisplayName(value = "회원가입 로직")
+    @Order(1)
     void signup() throws Exception {
-
-        String userId = "testId";
+        Date date = new Date();
+        String dateStr = date.toString();
         String password = "testPwd";
-
 
         String body = mapper.writeValueAsString(
                 User.builder()
-                        .userId(userId)
+                        .userId(testId)
                         .password(password)
                         .name(name)
-                        .nickname(email)
-                        .email(nickname)
+                        .nickname(userId)
+                        .email(dateStr + "@gmail.com")
                         .auth(auth)
                         .build()
         );
@@ -72,12 +77,15 @@ class UserControllerTest {
                         .content(body) //HTTP Body에 데이터를 담는다
                         .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andDo(print());
     }
 
     @Test
     @DisplayName("로그인 로직")
+    @Order(2)
     void login() throws Exception {
+        userId = "dhtjdals77";
 
         String body = mapper.writeValueAsString(
                 User.builder()
@@ -165,12 +173,17 @@ class UserControllerTest {
                 .andDo(print());
     }
 
+//    userId를 인식하지 못해서 테스트가 계속해서 실패
     @Test
     @DisplayName("계정 삭제")
+    @Order(3)
     void deleteTest() throws Exception {
+        MultiValueMap<String , String > body = new LinkedMultiValueMap<>();
+        body.add("userId", testId);
+        String request = mapper.writeValueAsString(body);
         //then
         mvc.perform(delete(BASE_URL + deleteURL)
-                        .content(email) //HTTP Body에 데이터를 담는다
+                        .content(request) //HTTP Body에 데이터를 담는다
                         .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
                 )
                 .andExpect(status().isOk())
@@ -214,9 +227,11 @@ class UserControllerTest {
     @Test
     @DisplayName("중복확인(이메일)")
     void overlapEmail() throws Exception {
+        Date date = new Date();
+        String nowStr = date.toString();
         String body = mapper.writeValueAsString(
                 User.builder()
-                        .email("rmsidehofk")
+                        .email(nowStr+"@gmail.com")
                         .build()
         );
         //then
@@ -235,7 +250,7 @@ class UserControllerTest {
     void overlapFail() throws Exception {
         String body = mapper.writeValueAsString(
                 User.builder()
-                        .email("rmsidehofk")
+                        .email("hahaha@gmail.com")
                         .build()
         );
         //then
@@ -243,7 +258,26 @@ class UserControllerTest {
                         .content(body) //HTTP Body에 데이터를 담는다
                         .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+    }
+
+//    email 정합성이 깨짐
+//    input value = email
+    @Test
+    @DisplayName("중복확인(메일 정합성 실패)")
+    void overlapMailFail() throws Exception {
+        String body = mapper.writeValueAsString(
+                User.builder()
+                        .email("rmsidehofk")
+                        .build()
+        );
+        //then
+        mvc.perform(post(BASE_URL + overlapURL + "/email")
+                        .content(body) //HTTP Body에 데이터를 담는다
+                        .contentType(MediaType.APPLICATION_JSON) //보내는 데이터의 타입을 명시
+                )
+                .andExpect(status().isBadRequest())
                 .andDo(print());
     }
 

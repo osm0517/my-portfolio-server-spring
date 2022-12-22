@@ -49,18 +49,18 @@
 
     <!--  update query  -->
     <update id="change" parameterType="User">
-        UPDATE user_tb
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="password != null"> password = #{password}</if>
-            <if test="name != null"> name = #{name}</if>
-            <if test="nickname != null"> nickname = #{nickname}</if>
-        </trim>
+        UPDATE user_tb SET
+        <choose>
+            <when test="password != null"> password = #{password} </when>
+            <when test="name != null"> name = #{name} </when>
+            <otherwise> nickname = #{nickname} </otherwise>
+        </choose>
         WHERE email = #{email}
     </update>
 
     <!--  delete query  -->
     <delete id="delete" parameterType="String">
-        DELETE FROM user_tb WHERE email = #{email}
+        DELETE FROM user_tb WHERE userId = #{userId}
     </delete>
 
     <delete id="deleteAuth" parameterType="String">

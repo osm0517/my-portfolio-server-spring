@@ -79,10 +79,10 @@ public class JwtConfig {
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    public Boolean testAuth(String token) {
-        Jws<Claims> claims = Jwts.parser().setSigningKey(accessSecretKey).parseClaimsJws(token);
-        return claims.getBody().getExpiration().before(new Date());
-    }
+//    public Boolean testAuth(String token) {
+//        Jws<Claims> claims = Jwts.parser().setSigningKey(accessSecretKey).parseClaimsJws(token);
+//        return claims.getBody().getExpiration().before(new Date());
+//    }
 
     // Request의 Header에서 cookie 값을 가져옵니다.
     // 가져온 쿠키 값을 split으로 잘라서 X-AUTH-TOKEN 값을 추출

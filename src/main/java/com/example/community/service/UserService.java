@@ -5,11 +5,13 @@ import com.example.community.dto.Response;
 import com.example.community.dto.User;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
+import com.example.community.utils.Consistency;
 import com.example.community.utils.MailService;
 import com.example.community.utils.jwt.JwtConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,9 @@ public class UserService {
     private BCryptService bCryptService;
 
     @Autowired
+    private Consistency consistency;
+
+    @Autowired
     private MailService mailService;
 
     @Autowired
@@ -37,10 +42,42 @@ public class UserService {
     @Autowired
     private JwtConfig jwtConfig;
 
+    /**
+     * 중복확인을 할 때 사용하는 메소드
+     * false 면 중복확인 실패
+     * true 면 중복확인 성공
+     * **/
+    private boolean overlapServeMethod(String type, User user){
+        String email = user.getEmail();
+        String userId = user.getUserId();
+        String nickname = user.getNickname();
 
-    public Response signup(User user) {
+        switch (type) {
+            case "email" :
+                return !Objects.equals(email, null);
+            case "userId" :
+                return !Objects.equals(userId, null);
+            case "nickname" :
+                return !Objects.equals(nickname, null);
+            default:
+                log.error("BAD OVERLAP TYPE = {}", type);
+                return false;
+        }
+    }
+
+    public Response signup(User user) throws DuplicateKeyException {
         String inputPassword = user.getPassword();
+        String inputEmail = user.getEmail();
         Response result = new Response();
+
+//        email 정합성 확인
+        if(!consistency.emailConsistency(inputEmail)){
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            result.setMessage("EMAIL BAD INPUT");
+
+            log.debug("BAD EMAIL = {}", inputEmail);
+            return result;
+        }
 
         //hash 알고리즘을 사용해서 비밀번호를 암호화
         String hashPassword = bCryptService.encodeBcrypt(inputPassword, strength);
@@ -51,9 +88,11 @@ public class UserService {
         //만약 1이 아니면 정상적으로 이루어진게 아님
         if(signupResult == 1){
             log.debug("signupSuccessResult = {}", signupResult);
+            result.setStatus(HttpStatus.OK);
             result.setMessage("SIGNUP OK");
         }else{
             log.debug("signupFailResult = {}", signupResult);
+            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             result.setMessage("SIGNUP FAIL");
         }
 
@@ -137,23 +176,26 @@ public class UserService {
         return response;
     }
 
-    public Response delete(String email){
+    public Response delete(String userId){
         Response response = new Response();
 
-        //입력된 이메일이 존재하지 않을 때
-        if(Objects.equals(email, null)){
-            response.setMessage("Email Data Not Input");
+        //입력된 아이디가 존재하지 않을 때
+        if(Objects.equals(userId, null)){
+            response.setMessage("userId Data Not Input");
             response.setStatus(HttpStatus.BAD_REQUEST);
         }else{
 
-            String selectResult = repository.selectPassword(email);
+            String selectResult = repository.selectPassword(userId);
 
-            //해당하는 이메일이 없을 때
+            log.debug("delete method userId = {}", userId);
+            log.debug("delete method select user information = {}", selectResult);
+
+            //해당하는 아이디가 없을 때
             if(Objects.equals(selectResult, null)){
-                response.setMessage("Email Data Not Exist");
+                response.setMessage("USER Data Not Exist");
                 response.setStatus(HttpStatus.CONFLICT);
             }else{
-                repository.delete(email);
+                repository.delete(userId);
 
                 //성공적으로 지우면 redirect로 홈 화면으로 나갈 수 있도록 함
                 response.setStatus(HttpStatus.OK);
@@ -164,14 +206,34 @@ public class UserService {
 
     //중복확인
     public Response overlap(String type, User user){
-
         Response response = new Response();
 
         if(!Objects.equals(type, "email") && !Objects.equals(type, "nickname") && !Objects.equals(type, "userId")){
             response.setMessage("Wrong Type Value");
             response.setStatus(HttpStatus.BAD_REQUEST);
         }
+
         else {
+            String email = user.getEmail();
+
+            if(!Objects.equals(user.getEmail(), null)) {
+
+//        email 정합성 확인
+                if (!consistency.emailConsistency(email)) {
+                    response.setStatus(HttpStatus.BAD_REQUEST);
+                    response.setMessage("EMAIL BAD INPUT");
+
+                    log.debug("BAD EMAIL = {}", email);
+                    return response;
+                }
+            }
+            if(!overlapServeMethod(type, user)){
+                response.setStatus(HttpStatus.BAD_REQUEST);
+                response.setMessage("TYPE, DATA NOT MATCH");
+
+                log.info("TYPE DATA NOT MATCH = {}", type);
+                return response;
+            }
             //중복확인 값
             String selectValue = repository.infoOverlap(user);
 
@@ -195,6 +257,15 @@ public class UserService {
     //기존에 인증확인을 위한 randomString이 존재한다면 기존 것을 삭제
     public Response mail(String email){
         Response response = new Response();
+
+        //        email 정합성 확인
+        if(!consistency.emailConsistency(email)){
+            response.setStatus(HttpStatus.BAD_REQUEST);
+            response.setMessage("EMAIL BAD INPUT");
+
+            log.debug("BAD EMAIL = {}", email);
+            return response;
+        }
 
         String randomString = mailService.createCode();
 

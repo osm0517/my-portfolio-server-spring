@@ -8,6 +8,7 @@ import com.example.community.utils.BCryptService;
 import com.example.community.repository.UserRepository;
 import com.example.community.utils.BCryptService;
 import com.example.community.service.UserService;
+import com.example.community.utils.Consistency;
 import com.example.community.utils.MailService;
 import com.example.community.utils.jwt.JwtConfig;
 import com.fasterxml.jackson.databind.util.JSONPObject;
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 
 @RestController
@@ -72,11 +75,16 @@ public class UserController {
     @ApiOperation(value = "회원가입", notes = "2022.11.22 기준 권한을 어떻게 설정하여서" +
             "DB에 저장해야할지 로직을 구성하지 못함 -> 해당 내용을 추가해야할 것 같음")
     public ResponseEntity<?> signup(@RequestBody User user){
+        HttpStatus status;
+        Response response = new Response();
 
-        /*현재 에러 처리는 service에서 try catch 문으로 처리
-        * 기본 처리만 한 것이기에 세세하게 만들 때에는 다시 해야함*/
-        Response response = userService.signup(user);
-        HttpStatus status = response.getStatus();
+        try {
+            response = userService.signup(user);
+            status = response.getStatus();
+        }catch(DuplicateKeyException e){
+            response.setMessage("EMAIL IS EXIST");
+            status = HttpStatus.CONFLICT;
+        }
 
         return new ResponseEntity<>(response, status);
     }
@@ -160,10 +168,10 @@ public class UserController {
     //지금 상태로는 완벽
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
     @ApiOperation(value = "계정 삭제")
-    public ResponseEntity<?> delete(@RequestBody String email){
+    public ResponseEntity<?> delete(@RequestBody String userId){
         HttpStatus status;
 
-        Response response = userService.delete(email);
+        Response response = userService.delete(userId);
 
         //정상적으로 삭제되면 홈 화면으로 redirect
         if(Objects.equals(response.getStatus(), HttpStatus.OK)){
