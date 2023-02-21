@@ -1,11 +1,10 @@
 package com.example.community.service;
 
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.Cookie;
-import java.util.List;
 
 @Component
 @Slf4j

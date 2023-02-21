@@ -41,3 +41,5 @@ src/main/java/com/example/community/config/MailConfig.java
 src/main/resources/configurationProperties
 
 src/main/resources/application.properties
+
+*.properties

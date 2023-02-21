@@ -1,10 +1,8 @@
 package com.example.community.vo;
 
 
-import com.example.community.dto.Board;
-import lombok.Data;
+import com.example.community.model.DAO.board.Board;
 import lombok.Getter;
-import lombok.Value;
 
 
 @Getter
@@ -24,11 +22,6 @@ public class BoardUpdateEntity {
     public BoardUpdateEntity(Long boardId, Board board) {
         this.boardId = boardId;
 
-        this.boardText = board.getBoardText();
-
-        this.title = board.getTitle();
-
-        this.categoryId = board.getCategoryId();
     }
 
 
