@@ -1,4 +1,4 @@
-package com.example.community.model.DTO;
+package com.example.community.model.DTO.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
