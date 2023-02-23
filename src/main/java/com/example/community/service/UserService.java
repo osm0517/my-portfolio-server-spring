@@ -2,6 +2,7 @@ package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.UserLoginDTO;
+import com.example.community.model.DTO.UserSignupDTO;
 import com.example.community.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +37,22 @@ public class UserService {
         return null;
     }
 
-    public void signup(){
+    public User signup(UserSignupDTO userSignupDTO) throws Exception{
 
+        if(!(userSignupDTO.isTermsOfInfo() && userSignupDTO.isTermsOfExam())){
+            return null;
+        }
+
+        String encodedPassword = bCryptPasswordEncoder.encode(userSignupDTO.getPassword());
+
+        User user = new User(
+                userSignupDTO.getUserId(),
+                encodedPassword,
+                userSignupDTO.getName(),
+                userSignupDTO.getEmail()
+        );
+
+        return userRepository.save(user);
     }
 
     public void delete(){
