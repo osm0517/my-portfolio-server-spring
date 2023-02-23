@@ -6,17 +6,16 @@ import lombok.*;
 
 import java.util.Date;
 
-@Getter @Builder
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity @Table(
-//        name = "user",
-//        uniqueConstraints = {
-//                @UniqueConstraint(
-//                        name = "user_user_id_email_unique",
-//                        columnNames = {"user_id", "email"}
-//                )
-//        }
+        name = "user",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "user_user_id_email_unique",
+                        columnNames = {"user_id", "email"}
+                )
+        }
 )
 public class User {
 
@@ -40,11 +39,11 @@ public class User {
     private String email;
 
     @ApiParam(value = "정지 여부")
-    @Column(name = "stop_state")
+    @Column(name = "stop_state", insertable = false)
     private String stopState;
 
     @ApiParam(value = "탈퇴 여부")
-    @Column(name = "delete_state")
+    @Column(name = "delete_state", insertable = false)
     private String deleteState;
 
     @ApiParam(value = "생성 날짜")
@@ -56,7 +55,22 @@ public class User {
     private Date updatedDate;
 
     @ApiParam(value = "신고 받은 횟수")
-    @Column(name = "number_of_report")
+    @Column(name = "number_of_report", insertable = false)
     private int report;
+
+    public User(String userId, String password, String name, String email) {
+        this.userId = userId;
+        this.password = password;
+        this.name = name;
+        this.email = email;
+    }
+
+    /**
+     * Test 진행을 할 때 편하기 위해서 사용하는 것임
+     * 사용할 때 주의하기
+     */
+    public void changePassword(String password){
+        this.password = password;
+    }
 
 }
