@@ -2,6 +2,7 @@ package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.user.UserDeleteDTO;
+import com.example.community.model.DTO.user.UserInfoChangeDTO;
 import com.example.community.model.DTO.user.UserLoginDTO;
 import com.example.community.model.DTO.user.UserSignupDTO;
 import com.example.community.repository.user.UserRepository;
@@ -92,11 +93,77 @@ public class UserService {
         return false;
     }
 
-    public void change(){
+    public User change(long id, UserInfoChangeDTO userInfoChangeDTO) throws IllegalArgumentException{
+        blankConvert(userInfoChangeDTO);
+//        모든 인수가 blank이면 예외를 발생
+        if(allArgumentBlank(userInfoChangeDTO)){
+            throw new IllegalArgumentException("all argument must not be blank");
+        }else {
+            Optional<User> optionalUser = userRepository.findById(id);
 
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                User editUser = editUserInfo(user, userInfoChangeDTO);
+
+                return userRepository.save(editUser);
+            }
+            return null;
+        }
     }
 
     public void find(){
 
+    }
+
+    /**
+     * 모든 인수가 blank인지 확인
+     */
+    private boolean allArgumentBlank(UserInfoChangeDTO userInfoChangeDTO){
+        return userInfoChangeDTO.getPassword().isBlank() &&
+                userInfoChangeDTO.getName().isBlank() &&
+                userInfoChangeDTO.getEmail().isBlank();
+    }
+
+    private UserInfoChangeDTO blankConvert(UserInfoChangeDTO beforeDTO){
+        if(beforeDTO.getPassword() == null){
+            beforeDTO.setPassword("");
+        }
+        if(beforeDTO.getConfirmPassword() == null){
+            beforeDTO.setConfirmPassword("");
+        }
+        if(beforeDTO.getName() == null){
+            beforeDTO.setName("");
+        }
+        if(beforeDTO.getEmail() == null){
+            beforeDTO.setEmail("");
+        }
+        return beforeDTO;
+
+    }
+
+    private User editUserInfo(User user, UserInfoChangeDTO userInfoChangeDTO){
+        String changePassword = userInfoChangeDTO.getPassword();
+        String changeConfirmPassword = userInfoChangeDTO.getConfirmPassword();
+        String changeName = userInfoChangeDTO.getName();
+        String changeEmail = userInfoChangeDTO.getEmail();
+
+        if(isNotBlank(changePassword)){
+            if(changePassword.equals(changeConfirmPassword)){
+                String encodedPassword = bCryptPasswordEncoder.encode(changePassword);
+
+                user.changePassword(encodedPassword);
+            }else{
+                throw new IllegalArgumentException("password not match for confirm");
+            }
+        }
+        if(isNotBlank(changeName)) user.changeName(changeName);
+
+        if(isNotBlank(changeEmail)) user.changeEmail(changeEmail);
+
+        return user;
+    }
+
+    private boolean isNotBlank(String content){
+        return !content.isBlank();
     }
 }

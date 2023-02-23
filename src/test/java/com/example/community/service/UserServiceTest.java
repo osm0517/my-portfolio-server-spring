@@ -2,6 +2,7 @@ package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.user.UserDeleteDTO;
+import com.example.community.model.DTO.user.UserInfoChangeDTO;
 import com.example.community.model.DTO.user.UserLoginDTO;
 import com.example.community.model.DTO.user.UserSignupDTO;
 import com.example.community.repository.user.UserRepository;
@@ -285,8 +286,82 @@ class UserServiceTest {
 
     }
 
-    @Test
-    void change() {
+    @Nested
+    @DisplayName("로컬 회원 정보 수정")
+    class change{
+
+        String changePassword = "password";
+        String changeConfirmPassword = "password";
+        String changeName = "name";
+        String changeEmail = "email";
+
+        @Test
+        @DisplayName("성공 로직")
+        void success() {
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(user.getUserId())
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            assertEquals(userPassword, findUser.getPassword());
+
+            assertDoesNotThrow(() -> {
+                UserInfoChangeDTO userInfoChangeDTO = new UserInfoChangeDTO(changePassword, changeConfirmPassword, null, null);
+                User changeUser = userService.change(findUser.getId(), userInfoChangeDTO);
+
+                boolean matches = bCryptPasswordEncoder.matches(changePassword, changeUser.getPassword());
+                assertTrue(matches);
+
+                UserInfoChangeDTO nameEmailChange = new UserInfoChangeDTO(null, null, changeName, changeEmail);
+                User finalChange = userService.change(changeUser.getId(), nameEmailChange);
+
+                boolean finalMatches = bCryptPasswordEncoder.matches(changePassword, finalChange.getPassword());
+                assertTrue(finalMatches);
+
+                assertEquals(changeName, finalChange.getName());
+                assertEquals(changeEmail, finalChange.getEmail());
+            });
+        }
+
+        @Test
+        @DisplayName("password 변경 실패 로직(password와 confirm 불일치)")
+        void fail1() {
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(user.getUserId())
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            UserInfoChangeDTO userInfoChangeDTO = new UserInfoChangeDTO(
+                    changePassword, changeConfirmPassword + "salt", null, null
+            );
+
+            Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
+                userService.change(findUser.getId(), userInfoChangeDTO);
+            });
+            assertEquals(exception.getMessage(), "password not match for confirm");
+        }
+
+        @Test
+        @DisplayName("변경 실패 로직(모든 인수 blank)")
+        void fail2() {
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(user.getUserId())
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            UserInfoChangeDTO userInfoChangeDTO = new UserInfoChangeDTO(
+                    "  ", changeConfirmPassword, "", "      "
+            );
+
+            Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
+                userService.change(findUser.getId(), userInfoChangeDTO);
+            });
+            assertEquals(exception.getMessage(), "all argument must not be blank");
+        }
+
     }
 
     @Test

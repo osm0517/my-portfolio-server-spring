@@ -73,4 +73,12 @@ public class User {
         this.password = password;
     }
 
+    public void changeName(String name){
+        this.name = name;
+    }
+
+    public void changeEmail(String email){
+        this.email = email;
+    }
+
 }
