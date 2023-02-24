@@ -4,9 +4,8 @@ import io.swagger.annotations.ApiParam;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter @Builder
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity @Table(name = "user_auth")
 public class UserAuth {
 
@@ -23,5 +22,15 @@ public class UserAuth {
 
     @ApiParam(value = "시도한 횟수")
     @Column(name = "number", insertable = false)
-    private int number;
+    private Integer number;
+
+    public UserAuth(String email, String randomString){
+        this.email = email;
+        this.randomString = randomString;
+    }
+
+    public void update(String randomString, int number){
+        this.randomString = randomString;
+        this.number = number;
+    }
 }

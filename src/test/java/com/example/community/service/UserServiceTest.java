@@ -364,7 +364,37 @@ class UserServiceTest {
 
     }
 
-    @Test
-    void find() {
+    @Nested
+    @DisplayName("ID 찾기")
+    class findUserId{
+
+        @Test
+        @DisplayName("성공 로직")
+        void success() {
+
+        }
+
+        @Test
+        @DisplayName("실패 로직")
+        void fail1() {
+
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Password 찾기")
+    class findPassword{
+
+        @Test
+        @DisplayName("성공 로직")
+        void success() {
+        }
+
+        @Test
+        @DisplayName("실패 로직")
+        void fail1() {
+        }
+
     }
 }

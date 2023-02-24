@@ -111,7 +111,11 @@ public class UserService {
         }
     }
 
-    public void find(){
+    public void findUserId(){
+
+    }
+
+    public void findPassword(){
 
     }
 
