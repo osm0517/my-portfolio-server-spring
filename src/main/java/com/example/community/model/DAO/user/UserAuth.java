@@ -4,7 +4,10 @@ import io.swagger.annotations.ApiParam;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
+import java.time.LocalDate;
+import java.util.Date;
+
+@Getter @ToString
 @NoArgsConstructor
 @Entity @Table(name = "user_auth")
 public class UserAuth {
@@ -24,6 +27,10 @@ public class UserAuth {
     @Column(name = "number", insertable = false)
     private Integer number;
 
+    @ApiParam(value = "마지막 수정 날짜")
+    @Column(name = "updated_date", updatable = false)
+    private Date updatedDate;
+
     public UserAuth(String email, String randomString){
         this.email = email;
         this.randomString = randomString;
@@ -32,5 +39,9 @@ public class UserAuth {
     public void update(String randomString, int number){
         this.randomString = randomString;
         this.number = number;
+    }
+
+    public void changeUpdatedDate(Date date){
+        this.updatedDate = date;
     }
 }

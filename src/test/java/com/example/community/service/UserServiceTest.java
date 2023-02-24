@@ -1,10 +1,7 @@
 package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
-import com.example.community.model.DTO.user.UserDeleteDTO;
-import com.example.community.model.DTO.user.UserInfoChangeDTO;
-import com.example.community.model.DTO.user.UserLoginDTO;
-import com.example.community.model.DTO.user.UserSignupDTO;
+import com.example.community.model.DTO.user.*;
 import com.example.community.repository.user.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.event.annotation.BeforeTestClass;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +20,9 @@ class UserServiceTest {
 
     private final String userPassword = "testPassword";
     private final String userId = "testId";
-    private final User user = new User(userId, userPassword, "testName", "testEmail");
+    private final String userName = "testName";
+    private final String userEmail = "testEmail";
+    private final User user = new User(userId, userPassword, userName, userEmail);
 
     @Autowired
     UserRepository userRepository;
@@ -371,13 +371,56 @@ class UserServiceTest {
         @Test
         @DisplayName("성공 로직")
         void success() {
+            userRepository.save(user);
 
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindUserIdDTO findUserIdDTO = new FindUserIdDTO(userEmail, userName);
+
+            assertDoesNotThrow(() -> {
+                String findUserId = userService.findUserId(findUserIdDTO);
+
+                assertEquals(findUserId, userId);
+            });
         }
 
         @Test
-        @DisplayName("실패 로직")
+        @DisplayName("실패 로직(email을 틀림)")
         void fail1() {
+            String notMatchEmail = "email";
 
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindUserIdDTO findUserIdDTO = new FindUserIdDTO(notMatchEmail, userName);
+
+            assertThrows(NoSuchElementException.class, () -> {
+                userService.findUserId(findUserIdDTO);
+            });
+        }
+
+        @Test
+        @DisplayName("실패 로직(이름을 틀림)")
+        void fail2() {
+            String notMatchName = "name";
+
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindUserIdDTO findUserIdDTO = new FindUserIdDTO(userEmail, notMatchName);
+
+            Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
+                userService.findUserId(findUserIdDTO);
+            });
+            assertEquals(exception.getMessage(), "This name not match for name to user");
         }
 
     }
@@ -389,11 +432,61 @@ class UserServiceTest {
         @Test
         @DisplayName("성공 로직")
         void success() {
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindPasswordDTO findPasswordDTO = new FindPasswordDTO(userId, userEmail);
+
+            assertDoesNotThrow(() -> {
+                String findPassword = userService.findPassword(findPasswordDTO);
+
+                User result = userRepository.findById(findUser.getId())
+                        .orElse(null);
+                assertNotNull(result);
+
+                assertEquals(result.getPassword(), findPassword);
+                System.out.println("findPassword = " + findPassword);
+            });
         }
 
         @Test
-        @DisplayName("실패 로직")
+        @DisplayName("실패 로직(email을 틀림)")
         void fail1() {
+            String notMatchEmail = "email";
+
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindPasswordDTO findPasswordDTO = new FindPasswordDTO(userId, notMatchEmail);
+
+            Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
+                userService.findPassword(findPasswordDTO);
+            });
+            assertEquals(exception.getMessage(), "This email not match for email to user");
+        }
+
+        @Test
+        @DisplayName("실패 로직(userId를 틀림)")
+        void fail2() {
+            String notMatchUserId = "id";
+
+            userRepository.save(user);
+
+            User findUser = userRepository.findByUserId(userId)
+                    .orElse(null);
+            assertNotNull(findUser);
+
+            FindPasswordDTO findPasswordDTO = new FindPasswordDTO(notMatchUserId, userEmail);
+
+            assertThrows(NoSuchElementException.class, () -> {
+                userService.findPassword(findPasswordDTO);
+            });
         }
 
     }

@@ -1,14 +1,13 @@
 package com.example.community.service;
 
 import com.example.community.model.DAO.user.UserAuth;
-import com.example.community.model.DTO.mail.UserAuthMailDTO;
 import com.example.community.repository.user.UserAuthRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.event.annotation.BeforeTestClass;
 
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,10 +1,7 @@
 package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
-import com.example.community.model.DTO.user.UserDeleteDTO;
-import com.example.community.model.DTO.user.UserInfoChangeDTO;
-import com.example.community.model.DTO.user.UserLoginDTO;
-import com.example.community.model.DTO.user.UserSignupDTO;
+import com.example.community.model.DTO.user.*;
 import com.example.community.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +9,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -111,12 +110,41 @@ public class UserService {
         }
     }
 
-    public void findUserId(){
+    public String findUserId(FindUserIdDTO findUserIdDTO) throws IllegalArgumentException, NoSuchElementException{
+        String email = findUserIdDTO.getEmail();
+        String name = findUserIdDTO.getName();
 
+        User findUser = userRepository.findByEmail(email)
+                .orElseThrow(NoSuchElementException::new);
+
+        String findName = findUser.getName();
+
+        if(findName.equals(name)){
+            return findUser.getUserId();
+        }else{
+            throw new IllegalArgumentException("This name not match for name to user");
+        }
     }
 
-    public void findPassword(){
+    public String findPassword(FindPasswordDTO findPasswordDTO) throws IllegalArgumentException, NoSuchElementException{
+        String email = findPasswordDTO.getEmail();
+        String userId = findPasswordDTO.getUserId();
 
+        User findUser = userRepository.findByUserId(userId)
+                .orElseThrow(NoSuchElementException::new);
+
+        String findEmail = findUser.getEmail();
+
+        if(findEmail.equals(email)){
+            String changePassword = UUID.randomUUID().toString().substring(0, 6);
+
+            findUser.changePassword(changePassword);
+            userRepository.save(findUser);
+
+            return changePassword;
+        }else{
+            throw new IllegalArgumentException("This email not match for email to user");
+        }
     }
 
     /**
