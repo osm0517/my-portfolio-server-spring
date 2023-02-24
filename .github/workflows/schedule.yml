@@ -3,7 +3,7 @@ name : auto-test
 on :
   schedule :
 #   매일 00시에 테스트가 실행됨
-    -cron : "0 15 * * *"
+    [ cron : "0 15 * * *" ]
   push :
     branches :
       [ master ]
