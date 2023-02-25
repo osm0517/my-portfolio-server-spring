@@ -39,7 +39,3 @@ out/
 src/main/java/com/example/community/config/MailConfig.java
 .gitignore
 src/main/resources/configurationProperties
-
-src/main/resources/application.properties
-
-*.properties
