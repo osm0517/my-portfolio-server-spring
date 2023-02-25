@@ -14,13 +14,7 @@ jobs :
       ubuntu-latest
     
     steps :
-      - name: Setup MySQL
-        uses: samin/mysql-action@v1
-        with:
-          character set server: 'utf8'
-          mysql database: 'community'
-          mysql user: 'seongmin'
-          mysql password: ${{ secrets.MySQL_PASSWORD }} # github Secret 탭에서 설정하세요!
+
           
       - uses : actions/checkout@v3
       - name : Set up JDK 17
