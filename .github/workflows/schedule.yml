@@ -12,25 +12,25 @@ jobs :
   test :
     runs-on :
       ubuntu-latest
-    services:  # 서비스할 목록들 (ex. Redis, Postgresql ...)
-      mysql:   # 사용할 서비스 명
-        image: mysql:8.0  # 사용할 서비스의 이미지(도커 개념 기반)
-        env:   # 사용할 서비스의 환경설정
-          MYSQL_USER: seongmin
-          MYSQL_PASSWORD: seongmin
-        ports: # 열어줄 포트, 8080:3306 형태로도 가능
-          - 3306
     
     steps :
-     - uses : actions/checkout@v3
-     - name : Set up JDK 17
-       uses : actions/setup-java@main
-       with :
-          java-version: '17'
-          distribution: 'adopt'
+      - name: Setup MySQL
+        uses: samin/mysql-action@v1
+        with:
+          character set server: 'utf8'
+          mysql database: 'community'
+          mysql user: 'seongmin'
+          mysql password: ${{ secrets.MySQL_PASSWORD }} # github Secret 탭에서 설정하세요!
           
-     - name : Change Permission
-       run : chmod +x ./gradlew
+      - uses : actions/checkout@v3
+      - name : Set up JDK 17
+        uses : actions/setup-java@main
+        with :
+            java-version: '17'
+            distribution: 'adopt'
+          
+      - name : Change Permission
+        run : chmod +x ./gradlew
     
-     - name : Test with Gradle
-       run : ./gradlew clean test
+      - name : Test with Gradle
+        run : ./gradlew clean test
