@@ -1,24 +1,24 @@
 package com.example.community.model.DAO.board;
 
+import com.example.community.data.category.Category;
 import com.example.community.model.DAO.user.User;
+import com.example.community.model.DTO.post.PostEditDTO;
+import com.example.community.model.DTO.post.PostWriteDTO;
 import io.swagger.annotations.ApiParam;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 
 
-@Getter @Builder
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity @Table(name = "board")
-public class Board {
+public class Post {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
-//    일단 보류
-//    private User user;
 
     @ApiParam(value = "제목")
     @Column(name = "title", nullable = false)
@@ -28,13 +28,19 @@ public class Board {
     @Column(name = "text", nullable = false)
     private String text;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @ApiParam(value = "분류")
     @Column(name = "category", nullable = false)
-    private String category;
+    @Enumerated(value = EnumType.STRING)
+    private Category category;
 
     @ApiParam(value = "상세분류")
     @Column(name = "detail_category", nullable = false)
-    private String detailCategory;
+    @Enumerated(value = EnumType.STRING)
+    private Category detailCategory;
 
     @ApiParam(value = "생성 날짜")
     @Column(name = "created_date", nullable = false, insertable = false, updatable = false)
@@ -53,6 +59,24 @@ public class Board {
     private long scrapCount;
 
     @ApiParam(value = "조회수")
-    @Column(name = "count", updatable = false, insertable = false)
+    @Column(name = "count", insertable = false)
     private long count;
+
+    public Post(String title, String text, User user, Category category, Category detailCategory) {
+        this.title = title;
+        this.text = text;
+        this.user = user;
+        this.category = category;
+        this.detailCategory = detailCategory;
+    }
+
+    public Post editPost(PostEditDTO postEditDTO) throws IllegalAccessException{
+        this.title = postEditDTO.getTitle();
+        this.text = postEditDTO.getText();
+        this.category = postEditDTO.getCategory();
+        this.detailCategory = postEditDTO.getDetailCategory();
+
+        return this;
+    }
+
 }
