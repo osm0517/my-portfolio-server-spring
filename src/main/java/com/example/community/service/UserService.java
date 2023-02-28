@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Transactional(readOnly = true)
     public User login(UserLoginDTO userLoginDTO) throws IllegalArgumentException{
         String loginUserId = userLoginDTO.getUserId();
         String loginPassword = userLoginDTO.getPassword();
@@ -44,6 +46,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public User signup(UserSignupDTO userSignupDTO) throws IllegalArgumentException, DataIntegrityViolationException {
 
         if(!(userSignupDTO.isTermsOfInfo() && userSignupDTO.isTermsOfExam())){
@@ -62,6 +65,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public boolean delete(UserDeleteDTO userDeleteDTO) throws IllegalArgumentException{
         long id = userDeleteDTO.getId();
         String password = userDeleteDTO.getPassword();
@@ -92,6 +96,7 @@ public class UserService {
         return false;
     }
 
+    @Transactional
     public User change(long id, UserInfoChangeDTO userInfoChangeDTO) throws IllegalArgumentException{
         blankConvert(userInfoChangeDTO);
 //        모든 인수가 blank이면 예외를 발생
@@ -110,6 +115,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public String findUserId(FindUserIdDTO findUserIdDTO) throws IllegalArgumentException, NoSuchElementException{
         String email = findUserIdDTO.getEmail();
         String name = findUserIdDTO.getName();
@@ -126,6 +132,7 @@ public class UserService {
         }
     }
 
+    @Transactional
     public String findPassword(FindPasswordDTO findPasswordDTO) throws IllegalArgumentException, NoSuchElementException{
         String email = findPasswordDTO.getEmail();
         String userId = findPasswordDTO.getUserId();

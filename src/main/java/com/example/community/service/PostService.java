@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,6 +22,7 @@ public class PostService {
 
     private final PostRepository postRepository;
 
+    @Transactional(readOnly = true)
     public List<Post> posts(User user, Pageable request) {
         if(request == null || user == null){
             throw new NullPointerException("request can not be null");
@@ -29,6 +31,7 @@ public class PostService {
                 .stream().toList();
     }
 
+    @Transactional
     public Post writePost(PostWriteDTO postWriteDTO) throws IllegalArgumentException {
         try{
             if(postWriteDTO.hasNull()){
@@ -51,6 +54,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     public void editPost(long postId, PostEditDTO postEditDTO){
         try{
             if(postEditDTO.hasNull()){
@@ -69,6 +73,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     public Post detail(long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(NoSuchElementException::new);

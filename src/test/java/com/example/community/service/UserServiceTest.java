@@ -448,7 +448,6 @@ class UserServiceTest {
                 assertNotNull(result);
 
                 assertEquals(result.getPassword(), findPassword);
-                System.out.println("findPassword = " + findPassword);
             });
         }
 
