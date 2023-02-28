@@ -1,6 +1,5 @@
 package com.example.community.model.DAO.board;
 
-import com.example.community.model.DAO.user.User;
 import io.swagger.annotations.ApiParam;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

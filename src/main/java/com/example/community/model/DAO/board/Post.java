@@ -3,13 +3,13 @@ package com.example.community.model.DAO.board;
 import com.example.community.data.category.Category;
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.post.PostEditDTO;
-import com.example.community.model.DTO.post.PostWriteDTO;
 import io.swagger.annotations.ApiParam;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Getter
@@ -61,6 +61,9 @@ public class Post {
     @ApiParam(value = "조회수")
     @Column(name = "count", insertable = false)
     private long count;
+
+    @OneToMany(mappedBy = "post")
+    private List<Comment> comments = new ArrayList<Comment>();
 
     public Post(String title, String text, User user, Category category, Category detailCategory) {
         this.title = title;

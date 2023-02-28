@@ -1,164 +1,133 @@
-//package com.example.community.service;
-//
-//import com.example.community.model.DAO.board.Comment;
-//import com.example.community.dto.Report;
-//import com.example.community.dto.Response;
-//import com.example.community.repository.board.CommentRepository;
-//import com.example.community.utils.jwt.JwtConfig;
-//import jakarta.servlet.http.HttpServletRequest;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.List;
-//import java.util.Objects;
-//
-//@Service
-//@Slf4j
-//@RequiredArgsConstructor
-//public class CommentService {
-//
-//    private final CommentRepository repository;
-//    private final CookieService cookieService;
-//    private final JwtConfig jwtConfig;
-//
-//    @Value("${jwt.access-secretKey}")
-//    private String accessSecretKey;
-//
-//    private String checkAdminString = "_ADMIN";
-//
-////    select
-//    public Response selectCommentById(long boardId){
-//
-//        Response response = new Response();
-//        //저장된 comment를 불러옴
-//        List<Comment> commentList = repository.selectCommentById(boardId);
-//
-//        response.setMessage("OK");
-//        response.setStatus(HttpStatus.OK);
-//        response.setData(commentList);
-//
-//        return response;
-//    }
-//    public Response selectTotalById(long boardId){
-//
-//        Response response = new Response();
-//        //해당 boardId에 댓글의 총 개수를 불러옴
-//        int selectResult = repository.commentTotal(boardId);
-//
-//        response.setMessage("OK");
-//        response.setStatus(HttpStatus.OK);
-//        response.setData(selectResult);
-//
-//        return response;
-//    }
-////    insert
-//    public Response createComment(Comment comment){
-//
-//        String defaultComment = "정말 좋아요:)";
-//
-//        Response response = new Response();
-//        //댓글 내용이 없다면 default 값을 넣어서 댓글을 작성함.
-//        //댓글을 작성함
-//        int createResult = repository.createComment(comment);
-//        //제대로 만들어지지 않으면 예외를 반환
-//        //일단은 badRequest를 반환
-//        if(createResult != 1) {
-//            response.setMessage("Fail To Create");
-//            response.setStatus(HttpStatus.BAD_REQUEST);
-//        }
-//        response.setMessage("OK");
-//        response.setData(comment);
-//        response.setStatus(HttpStatus.OK);
-//
-//        return response;
-//    }
-//
-////    public Response addComment(Comment comment)
-////            throws Exception{
-////        Response response = new Response();
-////        HttpStatus status;
-////        //댓글 내용이 없다면 default 값을 넣어서 댓글을 작성함.
-////        String text = comment.getComment();
-////        if(Objects.equals(text, null)){ comment.setComment(defaultComment); }
-////        //대댓글을 작성함
-////        int createResult = repository.addComment(comment);
-////        //제대로 만들어지지 않으면 예외를 반환
-////        //일단은 badRequest를 반환
-////        if(createResult != 1) {
-////            response.setMessage("Fail To Create");
-////            response.setStatus(HttpStatus.BAD_REQUEST);
-////        }
-////        response.setMessage("OK");
-////        response.setStatus(HttpStatus.OK);
-////
-////        return response;
-////    }
-//
-//    public Response reportComment(Report report){
-//
-//        Response response = new Response();
-//        HttpStatus status;
-//        //댓글 신고를 작성함
-//        int createResult = repository.reportComment(report);
-//        //제대로 만들어지지 않으면 예외를 반환
-//        //일단은 badRequest를 반환
-//        if(createResult != 1) {
-//            response.setMessage("Fail To Create");
-//            response.setStatus(HttpStatus.BAD_REQUEST);
-//        }
-//        response.setMessage("OK");
-//        response.setStatus(HttpStatus.OK);
-//
-//        return response;
-//    }
-////    update
-//
-////    delete
-//    public Response deleteComment(long boardId, int commentId, HttpServletRequest request){
-//
-//        Response response = new Response();
-//        //header에서 access쿠키 값을 가져옴
-//        String token = jwtConfig.resolveToken(request);
-//        //해당 값에서 userId값을 가져옴
-//        String userId = cookieService.searchUserIdByCookie(token, accessSecretKey);
-//
-//        //요청한 boardId에 해당 commentId가 존재하는지 확인
-//        List<Integer> selectIdResult = repository.selectIdByBoardId(boardId);
-//
-//        if(selectIdResult.contains(commentId)){
-//            //일반 사용자인지 관리자인지를 구분
-//            //관리자일 때
-//            if( userId.contains(checkAdminString) ){
-//                int deleteResult = repository.deleteComment(commentId);
-//
-//                //제대로 삭제되지 않으면 예외를 반환
-//                //일단은 badRequest를 반환
-//                if(deleteResult != 1) {
-//                    response.setMessage("Fail To Delete");
-//                    response.setStatus(HttpStatus.BAD_REQUEST);
-//                }
-//                response.setMessage("OK");
-//                response.setStatus(HttpStatus.OK);
-//            }//아닐때
-//            else{
-//                //내 댓글을 삭제함
-//                int createResult = repository.deleteComment(commentId);
-//                //제대로 삭제되지 않으면 예외를 반환
-//                //일단은 badRequest를 반환
-//                if(createResult != 1) {
-//                    response.setMessage("Fail To Create");
-//                    response.setStatus(HttpStatus.BAD_REQUEST);
-//                }
-//                response.setMessage("OK");
-//                response.setStatus(HttpStatus.OK);
-//            }
-//        }else{
-//            response.setMessage("CommentId Not Exist To Posts");
-//            response.setStatus(HttpStatus.BAD_REQUEST);
-//        }
-//        return response;
-//    }
-//}
+package com.example.community.service;
+
+import com.example.community.model.DAO.board.Comment;
+import com.example.community.model.DAO.board.Post;
+import com.example.community.model.DAO.report.CommentReport;
+import com.example.community.model.DAO.user.User;
+import com.example.community.model.DTO.comment.CommentDeleteDTO;
+import com.example.community.model.DTO.comment.CommentReportDTO;
+import com.example.community.model.DTO.comment.CommentWriteDTO;
+import com.example.community.repository.board.CommentRepository;
+import com.example.community.repository.board.PostRepository;
+import com.example.community.repository.report.CommentReportRepository;
+import com.example.community.repository.user.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class CommentService {
+
+    private final CommentRepository commentRepository;
+    private final CommentReportRepository commentReportRepository;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+
+    @Transactional
+    public void writeComment(CommentWriteDTO commentWriteDTO) throws IllegalArgumentException{
+        try{
+            if(commentWriteDTO.hasNull()){
+                throw new IllegalArgumentException("variable can not be null");
+            }else{
+                Long postId = commentWriteDTO.getPostId();
+                Long userId = commentWriteDTO.getUserId();
+                String text = commentWriteDTO.getText();
+
+                Post findPost = postRepository.findById(postId)
+                        .orElseThrow(NoSuchElementException::new);
+                User findUser = userRepository.findById(userId)
+                        .orElseThrow(NoSuchElementException::new);
+
+                Comment comment = new Comment(findUser, findPost, text);
+
+                commentRepository.save(comment);
+            }
+        }catch (IllegalAccessException e){
+            log.error(e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Comment> comments(long postId){
+
+        postRepository.findById(postId)
+                .orElseThrow(NoSuchElementException::new);
+
+        return commentRepository.findAllByPostId(postId);
+    }
+
+    @Transactional()
+    public void deleteComment(CommentDeleteDTO commentDeleteDTO) throws IllegalArgumentException{
+
+        Long userId = commentDeleteDTO.getUserId();
+        Long postId = commentDeleteDTO.getPostId();
+        Long commentId = commentDeleteDTO.getCommentId();
+
+        Optional<Post> optionalPost = postRepository.findById(postId);
+
+        if(optionalPost.isPresent()){
+            Comment comment = commentRepository.findById(commentId)
+                    .orElseThrow(NoSuchElementException::new);
+
+            Post post = optionalPost.get();
+
+            if(post.getComments().contains(comment)){
+
+                User user = userRepository.findById(userId)
+                        .orElseThrow(NoSuchElementException::new);
+
+                if(comment.getUser().equals(user)){
+                    System.out.println("aaa");
+                    commentRepository.delete(comment);
+                }else{
+                    throw new IllegalArgumentException("user not match for comment");
+                }
+
+            }else{
+                throw new IllegalArgumentException("comment not found with post");
+            }
+        }else{
+            throw new NoSuchElementException();
+        }
+    }
+
+    @Transactional
+    public void reportComment(CommentReportDTO commentReportDTO){
+        Long userId = commentReportDTO.getUserId();
+        Long postId = commentReportDTO.getPostId();
+        Long commentId = commentReportDTO.getCommentId();
+
+        Optional<Post> optionalPost = postRepository.findById(postId);
+
+        if(optionalPost.isPresent()){
+            Post post = optionalPost.get();
+
+            Comment comment = commentRepository.findById(commentId)
+                    .orElseThrow(NoSuchElementException::new);
+
+            if(post.getComments().contains(comment)){
+                User reporter = userRepository.findById(userId)
+                        .orElseThrow(NoSuchElementException::new);
+
+                CommentReport commentReport = new CommentReport(
+                        comment, reporter, commentReportDTO.getReportType(), commentReportDTO.getText()
+                );
+
+                commentReportRepository.save(commentReport);
+            }else{
+                throw new IllegalArgumentException("comment not found with post");
+            }
+        }else{
+            throw new NoSuchElementException();
+        }
+
+    }
+
+}
