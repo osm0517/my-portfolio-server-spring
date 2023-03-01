@@ -1,4 +1,4 @@
-package com.example.community.model.DTO.user;
+package com.example.community.model.VO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,11 +8,9 @@ import lombok.NoArgsConstructor;
 @Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginDTO {
+public class UserSignupResultVO {
 
     private String userId;
-    private String password;
-    private String confirmPassword;
-
+    private String name;
 
 }

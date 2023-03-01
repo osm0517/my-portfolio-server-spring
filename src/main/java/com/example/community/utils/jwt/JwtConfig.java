@@ -1,13 +1,16 @@
 package com.example.community.utils.jwt;
 
+import com.example.community.data.ROLE;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -20,31 +23,20 @@ public class JwtConfig {
 
     @Value("${jwt.access-secretKey}")
     private String accessSecretKey;
-
     @Value("${jwt.refresh-secretKey}")
     private String refreshSecretKey;
-
     @Value("${jwt.access-expiration}")
     private long accessExpiration;
-
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
-//    private final CustomUserDetailService customUserDetails;
-
-//    @PostConstruct
-//    protected void init() {
-//        accessSecretKey = Base64.getEncoder().encodeToString(accessSecretKey.getBytes());
-//    }
-
     //access token 값을 반환하는 메소드
-    public String createAccessToken(String userId, List<String> roleList) {
-        Claims claims = Jwts.claims().setSubject(userId); // JWT payload 에 저장되는 정보단위
-        claims.put("roles", roleList); // 정보는 key / value 쌍으로 저장된다.
+    public String createAccessToken(String userId, List<ROLE> roleList) {
         Date now = new Date();
 
         return Jwts.builder()
-                .setClaims(claims) // 정보 저장
+                .claim("userId", userId) // 정보 저장
+                .claim("role", roleList)
                 .setIssuedAt(now) // 토큰 발행 시간 정보
                 .setExpiration(new Date(now.getTime() + accessExpiration)) // set Expire Time
                 .signWith(SignatureAlgorithm.HS256, accessSecretKey)  // 사용할 암호화 알고리즘과
@@ -53,7 +45,7 @@ public class JwtConfig {
     }
 
     //refresh token 값을 반환하는 메소드
-    public String createRefreshToken(String userId, List<String> roleList) {
+    public String createRefreshToken(String userId, List<ROLE> roleList) {
         Claims claims = Jwts.claims().setSubject(userId); // JWT payload 에 저장되는 정보단위
         claims.put("roles", roleList); // 정보는 key / value 쌍으로 저장된다.
         Date now = new Date();

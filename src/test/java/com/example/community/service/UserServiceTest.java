@@ -2,6 +2,8 @@ package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.user.*;
+import com.example.community.model.VO.UserLoginResultVO;
+import com.example.community.model.VO.UserSignupResultVO;
 import com.example.community.repository.user.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +82,7 @@ class UserServiceTest {
             );
 
             assertDoesNotThrow(() -> {
-                User loginUser = userService.login(userLoginDTO);
+                UserLoginResultVO loginUser = userService.login(userLoginDTO);
 
                 assertEquals(loginUser.getUserId(), userLoginDTO.getUserId());
             });
@@ -97,11 +99,10 @@ class UserServiceTest {
                     matchId, notMatchPassword, notMatchPassword
             );
 
-            assertDoesNotThrow(() -> {
-                User loginUser = userService.login(userLoginDTO);
-
-                assertNull(loginUser);
+            Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
+                userService.login(userLoginDTO);
             });
+            assertEquals(exception.getMessage(), "password not match for user");
         }
 
         @Test
@@ -140,7 +141,7 @@ class UserServiceTest {
             );
 
             assertDoesNotThrow(() -> {
-                User savedUser = userService.signup(userSignupDTO);
+                UserSignupResultVO savedUser = userService.signup(userSignupDTO);
                 User findUser = userRepository.findByUserId(userId)
                         .orElse(null);
 
@@ -190,7 +191,7 @@ class UserServiceTest {
             );
 
             assertDoesNotThrow(() -> {
-                User savedUser = userService.signup(userSignupDTO);
+                UserSignupResultVO savedUser = userService.signup(userSignupDTO);
 
                 assertNull(savedUser);
             });
@@ -399,8 +400,10 @@ class UserServiceTest {
 
             FindUserIdDTO findUserIdDTO = new FindUserIdDTO(notMatchEmail, userName);
 
-            assertThrows(NoSuchElementException.class, () -> {
-                userService.findUserId(findUserIdDTO);
+            assertDoesNotThrow( () -> {
+                String findUserId = userService.findUserId(findUserIdDTO);
+
+                assertNull(findUserId);
             });
         }
 

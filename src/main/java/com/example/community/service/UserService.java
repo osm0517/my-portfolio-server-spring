@@ -2,6 +2,8 @@ package com.example.community.service;
 
 import com.example.community.model.DAO.user.User;
 import com.example.community.model.DTO.user.*;
+import com.example.community.model.VO.UserLoginResultVO;
+import com.example.community.model.VO.UserSignupResultVO;
 import com.example.community.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +25,8 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional(readOnly = true)
-    public User login(UserLoginDTO userLoginDTO) throws IllegalArgumentException{
+    public UserLoginResultVO login(UserLoginDTO userLoginDTO)
+            throws IllegalArgumentException, NoSuchElementException{
         String loginUserId = userLoginDTO.getUserId();
         String loginPassword = userLoginDTO.getPassword();
         String confirmPassword = userLoginDTO.getConfirmPassword();
@@ -35,19 +38,24 @@ public class UserService {
 
             if(bCryptPasswordEncoder.matches(loginPassword, findUser.getPassword())){
                 if(loginPassword.equals(confirmPassword)) {
-                    return findUser;
+
+                    return UserLoginResultVO.builder()
+                            .userId(findUser.getUserId())
+                            .name(findUser.getName())
+                            .build();
+
                 }else{
                     throw new IllegalArgumentException("password not match for confirm");
                 }
             }else{
-                return null;
+                throw new IllegalArgumentException("password not match for user");
             }
         }
-        return null;
+        throw new NoSuchElementException();
     }
 
     @Transactional
-    public User signup(UserSignupDTO userSignupDTO) throws IllegalArgumentException, DataIntegrityViolationException {
+    public UserSignupResultVO signup(UserSignupDTO userSignupDTO) throws IllegalArgumentException, DataIntegrityViolationException {
 
         if(!(userSignupDTO.isTermsOfInfo() && userSignupDTO.isTermsOfExam())){
             return null;
@@ -62,7 +70,12 @@ public class UserService {
                 userSignupDTO.getEmail()
         );
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return UserSignupResultVO.builder()
+                .userId(savedUser.getUserId())
+                .name(savedUser.getName())
+                .build();
     }
 
     @Transactional
@@ -116,19 +129,26 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public String findUserId(FindUserIdDTO findUserIdDTO) throws IllegalArgumentException, NoSuchElementException{
+    public String findUserId(FindUserIdDTO findUserIdDTO) throws IllegalArgumentException{
         String email = findUserIdDTO.getEmail();
         String name = findUserIdDTO.getName();
 
-        User findUser = userRepository.findByEmail(email)
-                .orElseThrow(NoSuchElementException::new);
+        Optional<User> optionalUser = userRepository.findByEmail(email);
 
-        String findName = findUser.getName();
+        if(optionalUser.isPresent()) {
 
-        if(findName.equals(name)){
-            return findUser.getUserId();
+            User findUser = optionalUser.get();
+
+            String findName = findUser.getName();
+
+            if (findName.equals(name)) {
+                return findUser.getUserId();
+            } else {
+                throw new IllegalArgumentException("This name not match for name to user");
+            }
+
         }else{
-            throw new IllegalArgumentException("This name not match for name to user");
+            return null;
         }
     }
 

@@ -23,7 +23,7 @@ public class User {
     private long id;
 
     @ApiParam(value = "아이디")
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, unique = true)
     private String userId;
 
     @ApiParam(value = "비밀번호")
@@ -35,7 +35,7 @@ public class User {
     private String name;
 
     @ApiParam(value = "이메일")
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
     @ApiParam(value = "정지 여부")

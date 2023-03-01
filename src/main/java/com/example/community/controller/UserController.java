@@ -1,222 +1,145 @@
-//package com.example.community.controller;
-//
-//import com.example.community.dto.Response;
-//import com.example.community.model.DAO.user.User;
-//import com.example.community.service.CookieService;
-//import com.example.community.utils.BCryptService;
-//import com.example.community.repository.user.UserRepository;
-//import com.example.community.service.UserService;
-//import com.example.community.utils.MailService;
-//import com.example.community.utils.jwt.JwtConfig;
-//import io.swagger.annotations.Api;
-//import io.swagger.annotations.ApiOperation;
-//import jakarta.servlet.http.Cookie;
-//import jakarta.servlet.http.HttpServletRequest;
-//import jakarta.servlet.http.HttpServletResponse;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.http.HttpHeaders;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//import org.yaml.snakeyaml.constructor.DuplicateKeyException;
-//
-//import java.net.URI;
-//import java.util.*;
-//
-//@RestController
-//@RequestMapping("/user")
-//@Api(tags = {"user 관련 API"})
-//@RequiredArgsConstructor
-//@Slf4j
-//public class UserController {
-//    @Autowired
-//    private BCryptService bCryptService;
-//    @Autowired
-//    private UserService userService;
-//
-//    @Autowired
-//    private MailService mailService;
-//
-//    @Autowired
-//    private UserRepository repository;
-//
-//    @Autowired
-//    private CookieService cookieService;
-//
-//    @Autowired
-//    private JwtConfig jwtConfig;
-//
-//
-//    @Value("${jwt.access-secretKey}")
-//    private String accessKey;
-//    @Value("${jwt.access-expiration}")
-//    private long accessExpiration;
-//
-//    @Value("${jwt.refresh-expiration}")
-//    private long refreshExpiration;
-//
-//
-//    //일단은 완벽하게 짜놓음
-//    @RequestMapping(value = "/signup", method = RequestMethod.POST)
-//    @ApiOperation(value = "회원가입", notes = "2022.11.22 기준 권한을 어떻게 설정하여서" +
-//            "DB에 저장해야할지 로직을 구성하지 못함 -> 해당 내용을 추가해야할 것 같음")
-//    public ResponseEntity<?> signup(@RequestBody User user){
-//        HttpStatus status;
-//        Response response = new Response();
-//
-//        try {
-//            response = userService.signup(user);
-//            status = response.getStatus();
-//        }catch(DuplicateKeyException e){
-//            response.setMessage("EMAIL IS EXIST");
-//            status = HttpStatus.CONFLICT;
-//        }
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//
-//
-//    @RequestMapping(value = "/test", method = RequestMethod.GET)
-//    public Object  dd(HttpServletRequest request) {
-//        //header에서 access쿠키 값을 가져옴
-//        String token = jwtConfig.resolveToken(request);
-//        //해당 값에서 userId값을 가져옴
-//        String userId = cookieService.searchUserIdByCookie(token, accessKey);
-//        return userId;
-//    }
-//
-//
-//    //지금 생각으로 완벽하게 짬
-//    @RequestMapping(value = "/login", method = RequestMethod.POST)
-//    @ApiOperation(value = "로그인", notes = "2022.11.22 기준 로그인 시에" +
-//            "refresh token, access token, login check cookie를 제공" +
-//            "다시 한 번 손을 봐야할 듯 싶음")
-//    public ResponseEntity<?> login(@RequestBody User user,
-//                                   HttpServletResponse servletResponse){
-//        /* 기본 단계지만 학습을 위해서 service에서 발생한 에러를
-//        * 현재 위치(controller)로 전송함
-//        * 여기서 에러를 처리*/
-//
-//        String userId = user.getUserId();
-//        String password = user.getPassword();
-//        String auth = null;
-//
-//        Response response = userService.login(userId, password, auth);
-//        HttpStatus status = response.getStatus();
-//
-//        if(status == HttpStatus.OK){
-//            String accessToken = jwtConfig.createAccessToken(userId, Arrays.asList("ROLE_USER"));
-//            String refreshToken = jwtConfig.createRefreshToken(userId, Arrays.asList("ROLE_USER"));
-//
-//
-//            Cookie accessCookie = cookieService.createCookie("X-AUTH-TOKEN", accessToken, accessExpiration, "/");
-//            Cookie refreshCookie = cookieService.createCookie("RE-AUTH-TOKEN", refreshToken, refreshExpiration, "/");
-//            //httponly 설정이 안 된 cookie 로그인이 됐는지 클라이언트에서 확인하기 위함
-//            Cookie loginCheckCookie = cookieService.loginCheckCookie(accessExpiration);
-//
-//            servletResponse.addCookie(accessCookie);
-//            servletResponse.addCookie(refreshCookie);
-//            servletResponse.addCookie(loginCheckCookie);
-//        }
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//    //정보 찾는건 일단 빼기
-////    @RequestMapping(value = "/search/{type}", method = RequestMethod.GET)
-////    public ResponseEntity<?> search(@PathVariable String type,@RequestBody User user){
-////
-////        Response response = new Response();
-////
-////        String email = user.getEmail();
-////        try {
-////            response.setMessage(userService.search(type, email));
-////            return response;
-////        }catch (Exception e){
-////            System.out.println(e);
-////            response.setMessage(e.toString());
-////            return response;
-////        }
-////    }
-//
-//    //일단은 완벽
-//    @RequestMapping(value = "/change", method = RequestMethod.POST)
-//    @ApiOperation(value = "정보 수정", notes = "회원정보를 수정하는 로직")
-//    public ResponseEntity<?> change(@RequestBody User user){
-//
-//        Response response = userService.change(user);
-//        HttpStatus status = response.getStatus();
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//    //지금 상태로는 완벽
-//    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
-//    @ApiOperation(value = "계정 삭제")
-//    public ResponseEntity<?> delete(@RequestBody String userId){
-//        HttpStatus status;
-//
-//        Response response = userService.delete(userId);
-//
-//        //정상적으로 삭제되면 홈 화면으로 redirect
-//        if(Objects.equals(response.getStatus(), HttpStatus.OK)){
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setLocation(URI.create("/"));
-//            status = HttpStatus.MOVED_PERMANENTLY;
-//            return new ResponseEntity<>(headers, status);
-//        }
-//
-//        status = response.getStatus();
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//    //지금 생각으로 완벽
-//    @RequestMapping(value = "/overlap/{type}", method = RequestMethod.POST)
-//    @ApiOperation(value = "중복확인", notes = "회원가입시에 정보가 중복되었는지" +
-//            "확인하기 위해 사용하는 api로 ID, NICKNAME, EMAIL을 확인할 수 있음")
-//    public ResponseEntity<?> overlap(@PathVariable String type, @RequestBody User user){
-//
-//        log.debug("overlap user information = {}", user);
-//
-//        Response response = userService.overlap(type, user);
-//        HttpStatus status = response.getStatus();
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//    //이메일로 인증메일을 보냄
-//    //지금 생각으로는 완벽
-//    @RequestMapping(value = "/overlap/mail", method = RequestMethod.POST)
-//    @ApiOperation(value = "인증메일 전송", notes = "email을 중복확인을 한 후에" +
-//            "해당 메일이 실제로 존재하는지 와 해당 메일이 실제로 사용자가 사용하는 메일인지를" +
-//            "확인하기 위해서 메일을 전송함")
-//    public ResponseEntity<?> overlapMailPost(@RequestBody String email){
-//
-//        log.debug("overlapMail email = {}", email);
-//
-//        Response response = userService.mail(email);
-//        HttpStatus status = response.getStatus();
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//
-//    //지금으로는 완벽
-//    @RequestMapping(value = "/auth", method = RequestMethod.GET)
-//    @ApiOperation(value = "인증번호 인증", notes = "사용자가 메일로 받은 인증번호를" +
-//            "인증하기 위해서 사용함")
-//    public ResponseEntity<?> auth(@RequestParam(name = "email") String email,
-//                                  @RequestParam(name = "randomString") String randomString){
-//
-//        log.debug("auth to email = {}", email);
-//        log.debug("auth randomString = {}", randomString);
-//
-//        Response response = null;
-//        HttpStatus status = response.getStatus();
-//
-//        return new ResponseEntity<>(response, status);
-//    }
-//}
+package com.example.community.controller;
+
+import com.example.community.data.ROLE;
+import com.example.community.model.DTO.user.FindUserIdDTO;
+import com.example.community.model.DTO.user.UserLoginDTO;
+import com.example.community.model.DTO.user.UserSignupDTO;
+import com.example.community.model.VO.ErrorVO;
+import com.example.community.model.VO.UserLoginResultVO;
+import com.example.community.model.VO.UserSignupResultVO;
+import com.example.community.service.CookieService;
+import com.example.community.service.UserService;
+import com.example.community.utils.jwt.JwtConfig;
+import io.swagger.annotations.Api;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import springfox.documentation.spring.web.json.Json;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/user")
+@Api(tags = {"user 관련 API"})
+@RequiredArgsConstructor
+@Slf4j
+public class UserController {
+
+    private final UserService userService;
+    private final JwtConfig jwtConfig;
+    private final CookieService cookieService;
+
+    @Value("${jwt.access-token-name}")
+    private String accessTokenName;
+    @Value("${jwt.refresh-token-name}")
+    private String refreshTokenName;
+    @Value("${jwt.access-expiration}")
+    private long accessExpiration;
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody UserLoginDTO userLoginDTO,
+            HttpServletResponse response
+    ){
+
+        try {
+            UserLoginResultVO login = userService.login(userLoginDTO);
+
+            List<ROLE> roles = new ArrayList<>(Collections.singleton(ROLE.USER));
+
+            String refreshToken = jwtConfig.createRefreshToken(userLoginDTO.getUserId(), roles);
+            String accessToken = jwtConfig.createAccessToken(userLoginDTO.getUserId(), roles);
+
+            response.addCookie(cookieService.createCookie(refreshTokenName, refreshToken, refreshExpiration, null));
+            response.addCookie(cookieService.createCookie(accessTokenName, accessToken, accessExpiration, null));
+
+            return new ResponseEntity<>(login, HttpStatus.OK);
+        }catch (IllegalArgumentException e){
+
+            if(e.getMessage().equals("password not match for confirm")){
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }else{
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+            }
+
+        }catch (NoSuchElementException e){
+            return new ResponseEntity<>("user not found with id", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(
+            @Validated @RequestBody UserSignupDTO userSignupDTO,
+            BindingResult bindingResult
+    ){
+
+        if(bindingResult.hasErrors()){
+            return getErrorVOResponseEntity(bindingResult);
+        }
+
+        try {
+            UserSignupResultVO savedUser = userService.signup(userSignupDTO);
+            return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+        }catch (DataIntegrityViolationException e){
+
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+        }
+    }
+
+    @GetMapping("/find/id")
+    public ResponseEntity<?> find(
+            @Validated @ModelAttribute FindUserIdDTO findUserIdDTO,
+            BindingResult bindingResult
+    ){
+
+        if(bindingResult.hasErrors()){
+            return getErrorVOResponseEntity(bindingResult);
+        }
+
+        try {
+
+            String findUserId = userService.findUserId(findUserIdDTO);
+
+            if(findUserId == null){
+                return new ResponseEntity<>(findUserId, HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(findUserId, HttpStatus.CREATED);
+            }
+
+        }catch (DataIntegrityViolationException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        }catch (IllegalArgumentException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private static ResponseEntity<ErrorVO> getErrorVOResponseEntity(BindingResult bindingResult) {
+        List<FieldError> errors = bindingResult.getFieldErrors();
+
+        List<String> errorList = new ArrayList<>();
+
+        for (FieldError error : errors) {
+            String value = Arrays.stream(error.getCodes()).toList().get(1);
+
+            errorList.add(value);
+        }
+
+        ErrorVO error = ErrorVO.builder()
+                .errorMessage("validation error")
+                .errors(Collections.singletonList(errorList))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+}

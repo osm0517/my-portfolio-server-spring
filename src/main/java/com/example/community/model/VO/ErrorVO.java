@@ -1,18 +1,17 @@
-package com.example.community.model.DTO.user;
+package com.example.community.model.VO;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Getter @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginDTO {
+public class ErrorVO {
 
-    private String userId;
-    private String password;
-    private String confirmPassword;
-
-
+    private String errorMessage;
+    private List<Object> errors;
 }
